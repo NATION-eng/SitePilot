@@ -34,7 +34,7 @@ const PRICING_CONFIG = {
 };
 
 export const calculateConstructionCosts = (projectData) => {
-  const { buildingSize, floors, location, projectType } = projectData;
+  const { buildingSize, floors } = projectData;
 
   // 1. Validate and Parse Inputs
   const sqm = parseFloat(buildingSize) || 0;
