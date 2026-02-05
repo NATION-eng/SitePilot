@@ -4,6 +4,7 @@ import Header from './components/Header';
 import Hero from './components/Hero';
 import FormContainer from './components/FormContainer';
 import Results from './components/Results/Results';
+import { calculateConstructionCosts } from './utils/pricingEngine';
 
 // Inject global styles
 const styleSheet = document.createElement("style");
@@ -62,39 +63,26 @@ function App() {
     setIsLoading(true);
     setCurrentStep(4);
 
-    // SIMULATION: Calling internal mock generator
-    // This allows the app to work beautifully without an API key or backend server.
+    // REAL CALCULATION: Using deterministic pricing engine
+    // We simulate a small delay for UX purposes (loading state)
     
     setTimeout(() => {
-      const mockAnalysis = {
-        materials: {
-          cement: Math.floor(Math.random() * 500 + 500) + " bags",
-          blocks: Math.floor(Math.random() * 5000 + 2000) + " pieces",
-          steel: "2.5 tons",
-          sand: "30 tons",
-          gravel: "45 tons",
-          roofing: "350 sqm"
-        },
-        costs: {
-          materials: 8500000,
-          labor: 2500000,
-          equipment: 1200000,
-          contingency: 1000000,
-          total: 13200000
-        },
-        risk: {
-          level: "Medium",
-          budgetRisk: "Market volatility may affect cement prices.",
-          timelineRisk: "Rainy season might delay foundation work."
-        },
-        warnings: ["Ensure soil test is conducted before foundation.", "Verify block quality."],
-        recommendations: ["Use grade 42.5 cement for columns.", "Consider waterproofing admixture."]
-      };
-
-      setAnalysisResults(mockAnalysis);
-      setIsLoading(false);
-      setView('results');
-    }, 2500); // 2.5s simulated delay
+      try {
+        const results = calculateConstructionCosts(projectData);
+        
+        if (!results) {
+          // Handle error or invalid data
+          console.error("Calculation returned null");
+        }
+        
+        setAnalysisResults(results);
+        setIsLoading(false);
+        setView('results');
+      } catch (error) {
+        console.error("Calculation failed:", error);
+        setIsLoading(false);
+      }
+    }, 1500); 
   };
 
   return (

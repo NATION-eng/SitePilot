@@ -11,7 +11,7 @@ const CostAnalysis = ({ costs }) => (
       .map(([key, value]) => (
         <div key={key} style={styles.materialItem}>
           <span style={styles.materialName}>
-            {key.charAt(0).toUpperCase() + key.slice(1)}
+            {key === 'm_e_p' ? 'MEP (Services)' : key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
           </span>
           <span style={styles.materialQuantity}>₦{value.toLocaleString()}</span>
         </div>

@@ -32,7 +32,7 @@ const Results = ({ projectData, analysis, onNewProject }) => {
       <div style={styles.container}>
         <div style={styles.formCard} className="slide-up" ref={contentRef}>
           <div style={styles.aiBadge}>
-            <span>🤖</span>
+            <span>🏡</span>
             <span>AI-Generated Analysis</span>
           </div>
 
