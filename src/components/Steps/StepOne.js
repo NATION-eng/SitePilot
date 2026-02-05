@@ -13,7 +13,7 @@ const StepOne = ({ projectData, updateProjectData, nextStep, resetProject }) => 
       <h2 style={styles.sectionTitle}>Project Type</h2>
       <p style={styles.sectionSubtitle}>Select the type of construction project</p>
       
-      <div style={styles.projectTypes}>
+      <div className="responsive-grid-3">
         {projectTypes.map(type => (
           <div
             key={type.id}

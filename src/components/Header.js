@@ -4,7 +4,7 @@ import { styles } from '../styles';
 const Header = () => (
   <header style={styles.header} className="fade-in">
     <div style={styles.container}>
-      <div style={styles.headerContent}>
+      <div className="responsive-header">
         <div style={styles.logo} className="btn-hover">
           <div style={styles.logoIcon}>S</div>
           <div style={styles.logoText}>

@@ -54,7 +54,7 @@ const Results = ({ projectData, analysis, onNewProject }) => {
             </div>
           )}
 
-          <div style={{...styles.resultsGrid, animationDelay: '0.3s'}} className="slide-up">
+          <div className="responsive-grid-2 slide-up" style={{ animationDelay: '0.3s' }}>
             <MaterialEstimates materials={analysis.materials} />
             <CostAnalysis costs={analysis.costs} />
             <RiskAssessment risk={analysis.risk} />

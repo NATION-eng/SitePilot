@@ -454,4 +454,57 @@ export const globalStyles = `
   ::-webkit-scrollbar-thumb:hover {
     background: #FF6B00;
   }
+
+  /* Responsive Utilities */
+  .responsive-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .responsive-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+
+  .responsive-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .responsive-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  @media (max-width: 768px) {
+    .responsive-grid-3 {
+      grid-template-columns: 1fr;
+    }
+
+    .responsive-grid-2 {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .responsive-form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .responsive-header {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .container {
+      padding: 0 1rem;
+    }
+    
+    .hero-title {
+      font-size: 2.5rem !important;
+    }
+  }
 `;

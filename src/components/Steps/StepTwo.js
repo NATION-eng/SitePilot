@@ -18,7 +18,7 @@ const StepTwo = ({ projectData, updateProjectData, nextStep, prevStep }) => (
       />
     </div>
 
-    <div style={styles.formRow}>
+    <div className="responsive-form-row">
       <div style={styles.formGroup}>
         <label style={styles.label}>Building Size (sqm)</label>
         <input
