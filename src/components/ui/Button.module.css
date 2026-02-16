@@ -1,0 +1,54 @@
+.btn {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.btnPrimary {
+  background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
+}
+
+.btnPrimary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 0, 0.4);
+}
+
+.btnPrimary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btnSecondary {
+  background: #2A3140;
+  color: #E8ECF0;
+  border: 2px solid #3A4150;
+}
+
+.btnSecondary:hover:not(:disabled) {
+  background: #3A4150;
+  border-color: #4A5160;
+}
+
+.btnDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .btn {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn {
+    width: 100%;
+  }
+}

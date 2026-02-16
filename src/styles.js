@@ -362,6 +362,19 @@ export const styles = {
     color: '#FF4757',
     border: '1px solid #FF4757',
   },
+  errorState: {
+    textAlign: 'center',
+    padding: '3rem 2rem',
+    background: '#141921',
+    border: '1px solid #2A3140',
+    borderRadius: '12px',
+    maxWidth: '600px',
+    margin: '0 auto',
+  },
+  errorIcon: {
+    fontSize: '3rem',
+    marginBottom: '1rem',
+  },
 };
 
 // Global styles
@@ -504,7 +517,22 @@ export const globalStyles = `
     }
     
     .hero-title {
-      font-size: 2.5rem !important;
+      font-size: 2rem !important;
+      line-height: 1.2;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero-title {
+      font-size: 1.75rem !important;
+    }
+
+    .button-group {
+      flex-direction: column;
+    }
+
+    .button-group button {
+      width: 100%;
     }
   }
 `;
