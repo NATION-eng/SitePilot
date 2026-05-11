@@ -1,9 +1,10 @@
 import React from 'react';
-import { styles } from '../../styles';
 import { useFormValidation } from '../../hooks/useFormValidation';
+import { useProject } from '../../context/ProjectContext';
 import Input from '../ui/Input';
 
-const StepTwo = ({ projectData, updateProjectData, nextStep, prevStep }) => {
+const StepTwo = () => {
+  const { projectData, updateProjectData, nextStep, prevStep } = useProject();
   const { errors, validate } = useFormValidation();
 
   const handleNext = () => {
@@ -18,8 +19,8 @@ const StepTwo = ({ projectData, updateProjectData, nextStep, prevStep }) => {
 
   return (
     <section className="fade-in" aria-labelledby="step-two-title">
-      <h2 id="step-two-title" style={styles.sectionTitle}>Project Details</h2>
-      <p style={styles.sectionSubtitle}>Tell us about your project specifications</p>
+      <h2 id="step-two-title" className="section-title">Project Details</h2>
+      <p className="section-subtitle">Tell us about your project specifications</p>
 
       <Input
         label="Location"
@@ -69,19 +70,17 @@ const StepTwo = ({ projectData, updateProjectData, nextStep, prevStep }) => {
         />
       </div>
 
-      <div style={styles.buttonGroup}>
+      <div className="button-group">
         <button 
-          style={styles.btnSecondary} 
-          onClick={prevStep} 
-          className="btn-hover"
+          className="btn-secondary btn-hover"
+          onClick={prevStep}
           aria-label="Go back to previous step"
         >
           Back
         </button>
         <button 
-          style={styles.btnPrimary} 
-          onClick={handleNext} 
-          className="btn-hover"
+          className="btn-primary btn-hover"
+          onClick={handleNext}
           aria-label="Continue to next step"
         >
           Continue
@@ -92,4 +91,3 @@ const StepTwo = ({ projectData, updateProjectData, nextStep, prevStep }) => {
 };
 
 export default StepTwo;
-

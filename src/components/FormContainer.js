@@ -1,57 +1,28 @@
 import React from 'react';
-import { styles } from '../styles';
 import ProgressBar from './ProgressBar';
 import StepOne from './Steps/StepOne';
 import StepTwo from './Steps/StepTwo';
 import StepThree from './Steps/StepThree';
 import LoadingStep from './Steps/LoadingStep';
+import { useProject } from '../context/ProjectContext';
 
-const FormContainer = ({
-  currentStep,
-  projectData,
-  updateProjectData,
-  nextStep,
-  prevStep,
-  resetProject,
-  generateAnalysis,
-  isLoading
-}) => (
-  <div style={styles.appContainer}>
-    <div style={styles.container}>
-      <ProgressBar currentStep={currentStep} />
-      
-      <div style={styles.formCard}>
-        {currentStep === 1 && (
-          <StepOne
-            projectData={projectData}
-            updateProjectData={updateProjectData}
-            nextStep={nextStep}
-            resetProject={resetProject}
-          />
-        )}
+const FormContainer = () => {
+  const { currentStep } = useProject();
+
+  return (
+    <div className="app-container">
+      <div className="container">
+        <ProgressBar />
         
-        {currentStep === 2 && (
-          <StepTwo
-            projectData={projectData}
-            updateProjectData={updateProjectData}
-            nextStep={nextStep}
-            prevStep={prevStep}
-          />
-        )}
-        
-        {currentStep === 3 && (
-          <StepThree
-            projectData={projectData}
-            updateProjectData={updateProjectData}
-            prevStep={prevStep}
-            generateAnalysis={generateAnalysis}
-          />
-        )}
-        
-        {currentStep === 4 && <LoadingStep />}
+        <div className="form-card">
+          {currentStep === 1 && <StepOne />}
+          {currentStep === 2 && <StepTwo />}
+          {currentStep === 3 && <StepThree />}
+          {currentStep === 4 && <LoadingStep />}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default FormContainer;

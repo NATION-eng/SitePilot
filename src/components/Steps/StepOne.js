@@ -1,7 +1,9 @@
 import React from 'react';
-import { styles } from '../../styles';
+import { useProject } from '../../context/ProjectContext';
 
-const StepOne = ({ projectData, updateProjectData, nextStep, resetProject }) => {
+const StepOne = () => {
+  const { projectData, updateProjectData, nextStep, resetProject } = useProject();
+
   const projectTypes = [
     { id: 'residential', icon: '🏠', name: 'Residential' },
     { id: 'commercial', icon: '🏢', name: 'Commercial' },
@@ -17,8 +19,8 @@ const StepOne = ({ projectData, updateProjectData, nextStep, resetProject }) => 
 
   return (
     <section className="fade-in" aria-labelledby="step-one-title">
-      <h2 id="step-one-title" style={styles.sectionTitle}>Project Type</h2>
-      <p style={styles.sectionSubtitle}>Select the type of construction project</p>
+      <h2 id="step-one-title" className="section-title">Project Type</h2>
+      <p className="section-subtitle">Select the type of construction project</p>
       
       <div 
         className="responsive-grid-3" 
@@ -32,35 +34,25 @@ const StepOne = ({ projectData, updateProjectData, nextStep, resetProject }) => 
             aria-checked={projectData.projectType === type.id}
             tabIndex={0}
             onKeyPress={(e) => handleKeyPress(e, type.id)}
-            className="card-hover"
-            style={{
-              ...styles.projectTypeCard,
-              ...(projectData.projectType === type.id ? styles.projectTypeCardSelected : {})
-            }}
+            className={`project-type-card card-hover ${projectData.projectType === type.id ? 'selected' : ''}`}
             onClick={() => updateProjectData('projectType', type.id)}
           >
-            <div style={styles.projectTypeIcon} aria-hidden="true">{type.icon}</div>
-            <div style={styles.projectTypeName}>{type.name}</div>
+            <div className="project-type-icon" aria-hidden="true">{type.icon}</div>
+            <div className="project-type-name">{type.name}</div>
           </div>
         ))}
       </div>
 
-      <div style={styles.buttonGroup}>
+      <div className="button-group">
         <button 
-          style={styles.btnSecondary} 
-          onClick={resetProject} 
-          className="btn-hover"
+          className="btn-secondary btn-hover"
+          onClick={resetProject}
           aria-label="Cancel and return to home"
         >
           Cancel
         </button>
         <button
-          className="btn-hover"
-          style={{
-            ...styles.btnPrimary,
-            opacity: projectData.projectType ? 1 : 0.5,
-            cursor: projectData.projectType ? 'pointer' : 'not-allowed'
-          }}
+          className={`btn-primary btn-hover ${!projectData.projectType ? 'disabled' : ''}`}
           onClick={nextStep}
           disabled={!projectData.projectType}
           aria-label="Continue to next step"

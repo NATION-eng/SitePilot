@@ -1,9 +1,10 @@
 import React from 'react';
-import { styles } from '../../styles';
 import { useFormValidation } from '../../hooks/useFormValidation';
+import { useProject } from '../../context/ProjectContext';
 import Input from '../ui/Input';
 
-const StepThree = ({ projectData, updateProjectData, prevStep, generateAnalysis }) => {
+const StepThree = () => {
+  const { projectData, updateProjectData, prevStep, generateAnalysis } = useProject();
   const { errors, validate } = useFormValidation();
 
   const handleGenerate = () => {
@@ -17,8 +18,8 @@ const StepThree = ({ projectData, updateProjectData, prevStep, generateAnalysis 
 
   return (
     <section className="fade-in" aria-labelledby="step-three-title">
-      <h2 id="step-three-title" style={styles.sectionTitle}>Budget & Timeline</h2>
-      <p style={styles.sectionSubtitle}>Set your financial and time constraints</p>
+      <h2 id="step-three-title" className="section-title">Budget & Timeline</h2>
+      <p className="section-subtitle">Set your financial and time constraints</p>
 
       <Input
         label="Budget Range (₦)"
@@ -52,13 +53,12 @@ const StepThree = ({ projectData, updateProjectData, prevStep, generateAnalysis 
         required
       />
 
-      <div style={styles.formGroup}>
-        <label htmlFor="notes" style={styles.label}>Additional Notes (Optional)</label>
+      <div className="form-group">
+        <label htmlFor="notes" className="label">Additional Notes (Optional)</label>
         <textarea
           id="notes"
           name="notes"
-          className="input-field"
-          style={{ ...styles.input, minHeight: '100px', resize: 'vertical' }}
+          className="textarea input-field"
           placeholder="Any specific requirements or concerns..."
           value={projectData.notes}
           onChange={(e) => updateProjectData('notes', e.target.value)}
@@ -66,19 +66,17 @@ const StepThree = ({ projectData, updateProjectData, prevStep, generateAnalysis 
         />
       </div>
 
-      <div style={styles.buttonGroup}>
+      <div className="button-group">
         <button 
-          style={styles.btnSecondary} 
-          onClick={prevStep} 
-          className="btn-hover"
+          className="btn-secondary btn-hover"
+          onClick={prevStep}
           aria-label="Go back to previous step"
         >
           Back
         </button>
         <button 
-          style={styles.btnPrimary} 
-          onClick={handleGenerate} 
-          className="btn-hover"
+          className="btn-primary btn-hover"
+          onClick={handleGenerate}
           aria-label="Generate cost analysis"
         >
           Generate Analysis
@@ -89,4 +87,3 @@ const StepThree = ({ projectData, updateProjectData, prevStep, generateAnalysis 
 };
 
 export default StepThree;
-

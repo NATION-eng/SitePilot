@@ -1,22 +1,18 @@
 import React from 'react';
-import { styles } from '../styles';
+import { useProject } from '../context/ProjectContext';
 
-const ProgressBar = ({ currentStep }) => {
-  const progress = ((currentStep - 1) / 3) * 100;
+const ProgressBar = () => {
+  const { currentStep, progress } = useProject();
   
   return (
-    <div style={styles.progressContainer}>
-      <div style={styles.progressBar}>
-        <div style={styles.progressBarBg} />
-        <div style={{ ...styles.progressFill, width: `${progress}%` }} />
+    <div className="progress-container">
+      <div className="progress-bar">
+        <div className="progress-bar-bg" />
+        <div className="progress-fill" style={{ width: `${progress}%` }} />
         {[1, 2, 3, 4].map(step => (
           <div
             key={step}
-            style={{
-              ...styles.step,
-              ...(step < currentStep ? styles.stepCompleted : {}),
-              ...(step === currentStep ? styles.stepActive : {})
-            }}
+            className={`step ${step < currentStep ? 'step-completed' : ''} ${step === currentStep ? 'step-active' : ''}`}
           >
             {step < currentStep ? '✓' : step}
           </div>

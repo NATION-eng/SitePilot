@@ -1,12 +1,13 @@
 import React, { useRef } from 'react';
-import { styles } from '../../styles';
 import MaterialEstimates from './MaterialEstimates';
 import CostAnalysis from './CostAnalysis';
 import RiskAssessment from './RiskAssessment';
 import Recommendations from './Recommendations';
+import { useProject } from '../../context/ProjectContext';
 import html2pdf from 'html2pdf.js';
 
-const Results = ({ projectData, analysis, onNewProject }) => {
+const Results = () => {
+  const { projectData, analysisResults: analysis, resetProject } = useProject();
   const contentRef = useRef(null);
 
   const downloadPDF = () => {
@@ -18,7 +19,7 @@ const Results = ({ projectData, analysis, onNewProject }) => {
       html2canvas: { 
         scale: 2, 
         useCORS: true, 
-        backgroundColor: '#141921', // Force dark background
+        backgroundColor: '#141921',
         logging: true
       },
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
@@ -28,26 +29,26 @@ const Results = ({ projectData, analysis, onNewProject }) => {
   };
 
   return (
-    <div style={styles.resultsContainer} className="fade-in">
-      <div style={styles.container}>
-        <div style={styles.formCard} className="slide-up" ref={contentRef}>
-          <div style={styles.aiBadge}>
+    <div className="results-container fade-in">
+      <div className="container">
+        <div className="form-card slide-up" ref={contentRef}>
+          <div className="ai-badge">
             <span>🏡</span>
             <span>AI-Generated Analysis</span>
           </div>
 
-          <h2 style={styles.sectionTitle}>
+          <h2 className="section-title">
             {projectData.projectType.charAt(0).toUpperCase() + projectData.projectType.slice(1)} Project Analysis
           </h2>
-          <p style={styles.sectionSubtitle}>
+          <p className="section-subtitle">
             {projectData.buildingSize} sqm • {projectData.floors} floors • {projectData.location}
           </p>
 
           {analysis.warnings && analysis.warnings.length > 0 && (
             <div>
               {analysis.warnings.map((warning, idx) => (
-                <div key={idx} className="slide-up" style={{...styles.alert, animationDelay: `${idx * 0.1}s`}}>
-                  <div style={styles.alertIcon}>⚠️</div>
+                <div key={idx} className="alert slide-up" style={{ animationDelay: `${idx * 0.1}s` }}>
+                  <div className="alert-icon">⚠️</div>
                   <div>{warning}</div>
                 </div>
               ))}
@@ -61,9 +62,9 @@ const Results = ({ projectData, analysis, onNewProject }) => {
             <Recommendations recommendations={analysis.recommendations} />
           </div>
 
-          <div style={{...styles.buttonGroup, marginTop: '2rem'}} data-html2canvas-ignore="true">
-            <button style={styles.btnSecondary} onClick={onNewProject} className="btn-hover">New Project</button>
-            <button style={styles.btnPrimary} onClick={downloadPDF} className="btn-hover">Download PDF Report</button>
+          <div className="button-group" style={{ marginTop: '2rem' }} data-html2canvas-ignore="true">
+            <button className="btn-secondary btn-hover" onClick={resetProject}>New Project</button>
+            <button className="btn-primary btn-hover" onClick={downloadPDF}>Download PDF Report</button>
           </div>
         </div>
       </div>

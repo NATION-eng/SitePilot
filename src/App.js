@@ -1,33 +1,21 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { styles, globalStyles } from './styles';
+import React, { useRef, useEffect } from 'react';
+import './App.css';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import FormContainer from './components/FormContainer';
 import Results from './components/Results/Results';
-import { calculateConstructionCosts } from './utils/pricingEngine';
+import SEO from './components/SEO';
+import { useProject } from './context/ProjectContext';
 
-// Inject global styles
-const styleSheet = document.createElement("style");
-styleSheet.innerText = globalStyles;
-document.head.appendChild(styleSheet);
+const seoConfig = {
+  hero: { title: 'Home', description: 'AI-powered construction intelligence — estimate materials, predict costs, and detect risks before breaking ground.' },
+  form: { title: 'New Project', description: 'Enter your construction project details for an AI-powered cost analysis.' },
+  results: { title: 'Project Analysis', description: 'Your AI-generated construction cost analysis and risk assessment.' }
+};
 
 function App() {
-  const [view, setView] = useState('hero'); // 'hero', 'form', 'results'
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [analysisResults, setAnalysisResults] = useState(null);
-  const [error, setError] = useState(null);
+  const { view, error, setError, currentStep, analysisResults } = useProject();
   const mainContentRef = useRef(null);
-  
-  const [projectData, setProjectData] = useState({
-    projectType: '',
-    location: '',
-    buildingSize: '',
-    floors: '',
-    budget: '',
-    timeline: '',
-    notes: ''
-  });
 
   // Focus management when view changes
   useEffect(() => {
@@ -36,72 +24,11 @@ function App() {
     }
   }, [view, currentStep]);
 
-  const updateProjectData = (field, value) => {
-    setProjectData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const startProject = () => {
-    setView('form');
-    setCurrentStep(1);
-    setError(null);
-  };
-
-  const resetProject = () => {
-    setView('hero');
-    setCurrentStep(1);
-    setProjectData({
-      projectType: '',
-      location: '',
-      buildingSize: '',
-      floors: '',
-      budget: '',
-      timeline: '',
-      notes: ''
-    });
-    setAnalysisResults(null);
-    setError(null);
-  };
-
-  const nextStep = () => {
-    setCurrentStep(prev => prev + 1);
-    setError(null);
-  };
-
-  const prevStep = () => {
-    setCurrentStep(prev => prev - 1);
-    setError(null);
-  };
-
-  const generateAnalysis = async () => {
-    setIsLoading(true);
-    setCurrentStep(4);
-    setError(null);
-
-    // REAL CALCULATION: Using deterministic pricing engine
-    // We simulate a small delay for UX purposes (loading state)
-    
-    setTimeout(() => {
-      try {
-        const results = calculateConstructionCosts(projectData);
-        
-        if (!results) {
-          throw new Error('Unable to calculate costs. Please check your inputs.');
-        }
-        
-        setAnalysisResults(results);
-        setIsLoading(false);
-        setView('results');
-      } catch (err) {
-        console.error("Calculation failed:", err);
-        setError(err.message || 'An unexpected error occurred. Please try again.');
-        setIsLoading(false);
-        setCurrentStep(3); // Return to previous step
-      }
-    }, 1500); 
-  };
+  const seo = seoConfig[view] || seoConfig.hero;
 
   return (
-    <div style={styles.app}>
+    <div className="app">
+      <SEO title={seo.title} description={seo.description} />
       <Header />
       
       <main 
@@ -112,51 +39,32 @@ function App() {
       >
         {view === 'hero' && (
           <section aria-labelledby="hero-title">
-            <Hero onStart={startProject} />
+            <Hero />
           </section>
         )}
         
         {view === 'form' && (
           <section aria-labelledby="form-title">
             {error && (
-              <div style={styles.errorState} role="alert">
-                <div style={styles.errorIcon}>❌</div>
+              <div className="error-state" role="alert">
+                <div className="error-icon">❌</div>
                 <h3>Analysis Failed</h3>
                 <p>{error}</p>
                 <button 
-                  style={styles.btnPrimary} 
-                  onClick={() => {
-                    setError(null);
-                    setCurrentStep(3);
-                  }}
-                  className="btn-hover"
+                  className="btn-primary btn-hover" 
+                  onClick={() => setError(null)}
                 >
                   Try Again
                 </button>
               </div>
             )}
-            {!error && (
-              <FormContainer
-                currentStep={currentStep}
-                projectData={projectData}
-                updateProjectData={updateProjectData}
-                nextStep={nextStep}
-                prevStep={prevStep}
-                resetProject={resetProject}
-                generateAnalysis={generateAnalysis}
-                isLoading={isLoading}
-              />
-            )}
+            {!error && <FormContainer />}
           </section>
         )}
         
         {view === 'results' && analysisResults && (
           <section aria-labelledby="results-title">
-            <Results
-              projectData={projectData}
-              analysis={analysisResults}
-              onNewProject={resetProject}
-            />
+            <Results />
           </section>
         )}
       </main>
@@ -165,4 +73,3 @@ function App() {
 }
 
 export default App;
-

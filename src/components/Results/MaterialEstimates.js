@@ -1,17 +1,16 @@
 import React from 'react';
-import { styles } from '../../styles';
 
 const MaterialEstimates = ({ materials }) => (
-  <div style={styles.resultCard}>
-    <h3 style={styles.resultCardTitle}>
-      <span style={styles.cardIcon}>📦</span> Material Estimates
+  <div className="result-card">
+    <h3 className="result-card-title">
+      <span className="card-icon">📦</span> Material Estimates
     </h3>
     {Object.entries(materials).map(([key, value]) => (
-      <div key={key} style={styles.materialItem}>
-        <span style={styles.materialName}>
+      <div key={key} className="material-item">
+        <span className="material-name">
           {key.charAt(0).toUpperCase() + key.slice(1)}
         </span>
-        <span style={styles.materialQuantity}>{value}</span>
+        <span className="material-quantity">{value}</span>
       </div>
     ))}
   </div>

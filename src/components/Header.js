@@ -1,17 +1,16 @@
 import React from 'react';
-import { styles } from '../styles';
 
 const Header = () => (
-  <header style={styles.header} className="fade-in">
-    <div style={styles.container}>
-      <div className="responsive-header">
-        <div style={styles.logo} className="btn-hover">
-          <div style={styles.logoIcon}>S</div>
-          <div style={styles.logoText}>
-            Site<span style={{ color: '#FF6B00' }}>Pilot</span>
+  <header className="header fade-in">
+    <div className="container">
+      <div className="header-content">
+        <div className="logo btn-hover">
+          <div className="logo-icon">S</div>
+          <div className="logo-text">
+            Site<span className="logo-accent">Pilot</span>
           </div>
         </div>
-        <div style={styles.headerBadge}>AI CONSTRUCTION INTELLIGENCE</div>
+        <div className="header-badge">AI CONSTRUCTION INTELLIGENCE</div>
       </div>
     </div>
   </header>

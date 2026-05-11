@@ -3,6 +3,7 @@
  * 
  * Logic derived from standard Nigerian quantity surveying heuristics and 2025 Market Prices.
  * Covers both STRUCTURE (Shell) and FINISHING phases.
+ * Now uses projectType, budget, and timeline for accurate risk assessment.
  */
 
 const PRICING_CONFIG = {
@@ -30,19 +31,33 @@ const PRICING_CONFIG = {
     waste: 1.10, // 10% Waste factor
     mep_load: 0.18, // Mechanical/Electrical/Plumbing as 18% of total construction
     contingency_base: 0.10, // 10% Unforeseen
+  },
+  // Project type cost multipliers
+  typeMultipliers: {
+    residential: 1.0,
+    commercial: 1.20,
+    industrial: 1.10
   }
 };
 
 export const calculateConstructionCosts = (projectData) => {
-  const { buildingSize, floors } = projectData;
+  const { buildingSize, floors, projectType, budget, timeline } = projectData;
 
   // 1. Validate and Parse Inputs
   const sqm = parseFloat(buildingSize) || 0;
   const numFloors = parseFloat(floors) || 1;
+  const budgetAmount = parseFloat(budget) || 0;
+  const timelineMonths = parseFloat(timeline) || 0;
   
   if (sqm === 0) return null;
 
-  // 2. Calculate Core Metrics
+  // 2. Get type multiplier
+  const typeMultiplier = PRICING_CONFIG.typeMultipliers[projectType] || 1.0;
+  const typeName = projectType
+    ? projectType.charAt(0).toUpperCase() + projectType.slice(1)
+    : 'General';
+
+  // 3. Calculate Core Metrics
   const totalFloorArea = sqm * numFloors; 
   const wallArea = totalFloorArea * 1.5; // Heuristic for walls
   const roofArea = Math.ceil(sqm * 1.4); // Roof is only on top floor area + pitch
@@ -53,18 +68,18 @@ export const calculateConstructionCosts = (projectData) => {
   // --- PHASE 1: STRUCTURE ---
 
   // Cement (Structure + Plaster + Floor Bed)
-  // ~4 bags/sqm is valid for the shell.
-  const cementBags = Math.ceil(totalFloorArea * 4.2); // Slight bump for contingencies
+  const cementBags = Math.ceil(totalFloorArea * 4.2);
   quantities.cement = `${cementBags.toLocaleString()} bags`;
-  costs.cement = cementBags * PRICING_CONFIG.materials.cement;
+  costs.cement = Math.ceil(cementBags * PRICING_CONFIG.materials.cement * typeMultiplier);
 
   // Blocks
   const blockCount = Math.ceil(wallArea * 10);
   quantities.blocks = `${blockCount.toLocaleString()} pieces (9")`;
-  costs.blocks = blockCount * PRICING_CONFIG.materials.block_9inch;
+  costs.blocks = Math.ceil(blockCount * PRICING_CONFIG.materials.block_9inch * typeMultiplier);
 
   // Steel
-  let steelKgPerSqm = numFloors > 1 ? 25 : 10; // Higher steel for multi-story
+  let steelKgPerSqm = numFloors > 1 ? 25 : 10;
+  if (projectType === 'industrial') steelKgPerSqm *= 1.15; // Heavier structure
   const steelTons = (totalFloorArea * steelKgPerSqm) / 1000;
   quantities.steel = `${steelTons.toFixed(1)} tons`;
   costs.steel = Math.ceil(steelTons * PRICING_CONFIG.materials.steel_ton);
@@ -83,99 +98,141 @@ export const calculateConstructionCosts = (projectData) => {
 
   // --- PHASE 2: FINISHING ---
 
-  // Tiles (Floor Area + ~20% for Skirting/Waste/Bath walls)
+  // Tiles
   const tileArea = Math.ceil(totalFloorArea * 1.25);
   quantities.tiles = `${tileArea} sqm`;
-  costs.tiles = tileArea * PRICING_CONFIG.materials.tiles_sqm;
+  costs.tiles = Math.ceil(tileArea * PRICING_CONFIG.materials.tiles_sqm * typeMultiplier);
 
-  // POP Ceiling (Flat floor area)
-  // Usually same as floor area
+  // POP Ceiling
   const popArea = Math.ceil(totalFloorArea);
   quantities.pop = `${popArea} sqm`;
-  costs.pop = popArea * PRICING_CONFIG.materials.pop_sqm;
+  costs.pop = Math.ceil(popArea * PRICING_CONFIG.materials.pop_sqm * typeMultiplier);
 
   // Paint
-  // Wall area * 2 (Internal+External) / ~30sqm per drum coverage
   const paintDrums = Math.ceil((wallArea * 2.2) / 30);
   quantities.paint = `${paintDrums} drums`;
   costs.paint = paintDrums * PRICING_CONFIG.materials.paint_drum;
 
   // Windows
-  // ~15% of Wall Surface is typical for fenestration
   const windowArea = Math.ceil(wallArea * 0.15);
   quantities.windows = `${windowArea} sqm`;
-  costs.windows = windowArea * PRICING_CONFIG.materials.window_sqm;
+  costs.windows = Math.ceil(windowArea * PRICING_CONFIG.materials.window_sqm * typeMultiplier);
 
   // Doors
-  // ~1 internal door per 15sqm room avg. 2 Security doors (Front/Back)
   const internalDoors = Math.ceil(totalFloorArea / 15);
-  const securityDoors = 2 * numFloors; // Main door per floor (roughly for apts)
+  const securityDoors = 2 * numFloors;
   quantities.doors = `${internalDoors} Internal, ${securityDoors} Security`;
   costs.doors = (internalDoors * PRICING_CONFIG.materials.door_internal) + 
                 (securityDoors * PRICING_CONFIG.materials.door_security);
 
   // --- PHASE 3: SERVICES & LABOR ---
 
-  // MEP (Mechanical/Electrical/Plumbing)
-  // Estimated as % of Structure+Finishing
   const directCost = Object.values(costs).reduce((a, b) => a + b, 0);
   const mepCost = Math.ceil(directCost * PRICING_CONFIG.multipliers.mep_load);
-
-  // Labor
-  // Based on SQM rate or % of materials. 
-  // Let's use % model for simplicity as it scales with finish quality.
-  // ~25% of Direct Materials is a safe estimation for "Labor Only".
   const laborCost = Math.ceil(directCost * 0.25);
 
-  // --- PHASE 4: CONTINGENCY ---
+  // --- PHASE 4: CONTINGENCY (deterministic) ---
   const subTotal = directCost + mepCost + laborCost;
   
-  // "Human Factor" / Risk
-  // Random variance 5-10%
-  const variancePct = 0.05 + (Math.random() * 0.05);
+  // Deterministic variance based on project inputs (5-10%)
+  const varianceSeed = ((sqm * 7 + numFloors * 13) % 100);
+  const variancePct = 0.05 + (varianceSeed / 100) * 0.05;
   const contingencyCost = Math.ceil(subTotal * variancePct);
 
   const grandTotal = subTotal + contingencyCost;
 
+  // --- RISK ASSESSMENT (now uses budget & timeline) ---
+  
+  // Budget risk
+  let budgetRisk;
+  if (budgetAmount > 0) {
+    const diff = budgetAmount - grandTotal;
+    const diffPercent = Math.round((diff / grandTotal) * 100);
+    if (diff > 0) {
+      budgetRisk = `Your budget of ₦${budgetAmount.toLocaleString()} is ₦${diff.toLocaleString()} above the estimated cost (${diffPercent}% surplus). Good buffer for unexpected costs.`;
+    } else if (diff < 0) {
+      budgetRisk = `Your budget of ₦${budgetAmount.toLocaleString()} is ₦${Math.abs(diff).toLocaleString()} below the estimated cost (${Math.abs(diffPercent)}% shortfall). Consider increasing budget or reducing scope.`;
+    } else {
+      budgetRisk = `Your budget matches the estimated cost exactly. Consider adding a 10-15% buffer.`;
+    }
+  } else {
+    budgetRisk = 'No budget specified. Finishing materials (Tiles, POP) vary wildly by brand/quality.';
+  }
+
+  // Timeline risk
+  let timelineRisk;
+  const recommendedMonths = Math.ceil((totalFloorArea / 100) * 3 * (typeMultiplier > 1 ? 1.2 : 1));
+  if (timelineMonths > 0) {
+    if (timelineMonths < recommendedMonths * 0.7) {
+      timelineRisk = `${timelineMonths} months is aggressive for ${totalFloorArea} sqm (${typeName}). Recommended: ${recommendedMonths}+ months. Rushing may compromise quality.`;
+    } else if (timelineMonths > recommendedMonths * 1.5) {
+      timelineRisk = `${timelineMonths} months is generous for ${totalFloorArea} sqm. This allows for thorough execution and quality control.`;
+    } else {
+      timelineRisk = `${timelineMonths} months is realistic for ${totalFloorArea} sqm. Recommended range: ${Math.ceil(recommendedMonths * 0.8)}-${Math.ceil(recommendedMonths * 1.3)} months.`;
+    }
+  } else {
+    timelineRisk = 'No timeline specified. Imported finishes (Doors, Tiles) may face clearance delays.';
+  }
+
+  // Overall risk level
+  const budgetDiffPercent = budgetAmount > 0 ? ((budgetAmount - grandTotal) / grandTotal) * 100 : 0;
+  let riskLevel;
+  if (grandTotal > 50000000 || budgetDiffPercent < -20) {
+    riskLevel = 'High';
+  } else if (budgetDiffPercent < -5 || grandTotal > 30000000) {
+    riskLevel = 'Medium';
+  } else {
+    riskLevel = budgetAmount > 0 ? 'Low' : 'Medium';
+  }
+
+  // --- WARNINGS & RECOMMENDATIONS ---
+  const warnings = [
+    'Prices are for STANDARD quality finishes. Luxury specs will double costs.',
+    'Professional supervision is assumed (avoiding quackery).',
+    'MEP costs are estimates; specific design required for accuracy.'
+  ];
+
+  if (projectType === 'commercial') {
+    warnings.push('Commercial projects require additional fire safety & accessibility compliance.');
+  }
+  if (projectType === 'industrial') {
+    warnings.push('Industrial builds may need specialised foundations — consult a structural engineer.');
+  }
+
+  const recommendations = [
+    'Buy cement in bulk to lock price.',
+    'Supervise iron benders closely to avoid steel waste.',
+    'Consider locally fabricated windows to save ~20%.'
+  ];
+
+  if (budgetAmount > 0 && budgetAmount < grandTotal) {
+    recommendations.unshift(`Budget shortfall of ₦${(grandTotal - budgetAmount).toLocaleString()} — prioritise structure over finishes.`);
+  }
+
   return {
     materials: quantities,
     costs: {
-      // Structure
       cement: costs.cement,
       blocks: costs.blocks,
       steel: costs.steel,
       aggregates: costs.aggregates,
       roofing: costs.roofing,
-      
-      // Finishing
       tiles: costs.tiles,
       pop: costs.pop,
       paint: costs.paint,
       windows: costs.windows,
       doors: costs.doors,
-      
-      // Services
-      m_e_p: mepCost, // Mechanical, Electrical, Plumbing
-      
+      m_e_p: mepCost,
       labor: laborCost,
       contingency: contingencyCost,
-      
       total: grandTotal
     },
     risk: {
-      level: grandTotal > 50000000 ? "High" : "Medium",
-      budgetRisk: "Finishing materials (Tiles, POP) vary wildly by brand/quality.",
-      timelineRisk: `Imported finishes (Doors, Tiles) may face cleared delays.`
+      level: riskLevel,
+      budgetRisk,
+      timelineRisk
     },
-    warnings: [
-      "Prices are for STANDARD quality finishes. Luxury specs will double costs.",
-      "Professional supervision is assumed (avoiding quackery).",
-      "MEP costs are estimates; specific design required for accuracy."
-    ],
-    recommendations: [
-      "Buy cement in bulk to lock price.",
-      "Supervise 'iron benders' closely to avoid steel waste.",
-      "Consider locally fabricated windows to save ~20%."
-    ]
+    warnings,
+    recommendations
   };
 };
