@@ -3,6 +3,7 @@ import { useMultiStepForm } from '../hooks/useMultiStepForm';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { calculateConstructionCosts } from '../utils/pricingEngine';
 import { getCurrencyInfo, getUnitInfo, formatCurrency, convertCurrency } from '../utils/currencyFormatter';
+import PRICING_CONFIG from '../pricing.config.json';
 
 const ProjectContext = createContext();
 
@@ -21,6 +22,7 @@ export const ProjectProvider = ({ children }) => {
   const [projectData, setProjectData] = useLocalStorage('sitepilot-project', defaultProjectData);
   const [currency, setCurrency] = useLocalStorage('sitepilot-currency', 'NGN');
   const [unit, setUnit] = useLocalStorage('sitepilot-unit', 'sqm');
+  const [materialPrices, setMaterialPrices] = useLocalStorage('sitepilot-custom-prices', PRICING_CONFIG.materials);
   const [analysisResults, setAnalysisResults] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -98,7 +100,7 @@ export const ProjectProvider = ({ children }) => {
 
     timeoutRef.current = setTimeout(() => {
       try {
-        const results = calculateConstructionCosts(projectData);
+        const results = calculateConstructionCosts(projectData, materialPrices);
         if (!results) {
           throw new Error('Unable to calculate costs. Please check that building size and floor numbers are valid.');
         }
@@ -114,7 +116,27 @@ export const ProjectProvider = ({ children }) => {
         announce(`Calculation error: ${err.message || 'Please try again.'}`);
       }
     }, 1800);
-  }, [projectData, goToStep, announce]);
+  }, [projectData, materialPrices, goToStep, announce]);
+
+  const recalculateEstimate = useCallback((customPrices) => {
+    if (projectData.buildingSize && parseFloat(projectData.buildingSize) > 0) {
+      try {
+        const results = calculateConstructionCosts(projectData, customPrices || materialPrices);
+        if (results) {
+          setAnalysisResults(results);
+          announce('Estimate recalculated with updated material rates.');
+        }
+      } catch (err) {
+        console.error('Recalculation error:', err);
+      }
+    }
+  }, [projectData, materialPrices, announce]);
+
+  const resetMaterialPrices = useCallback(() => {
+    setMaterialPrices(PRICING_CONFIG.materials);
+    recalculateEstimate(PRICING_CONFIG.materials);
+    announce('Material prices reset to 2026 baseline rates.');
+  }, [setMaterialPrices, recalculateEstimate, announce]);
 
   const currencyInfo = getCurrencyInfo(currency);
   const unitInfo = getUnitInfo(unit);
@@ -132,6 +154,10 @@ export const ProjectProvider = ({ children }) => {
     unit,
     setUnit,
     unitInfo,
+    materialPrices,
+    setMaterialPrices,
+    resetMaterialPrices,
+    recalculateEstimate,
     formatMoney: (amountInNGN) => formatCurrency(amountInNGN, currency),
     convertMoney: (amountInNGN) => convertCurrency(amountInNGN, currency),
     analysisResults,

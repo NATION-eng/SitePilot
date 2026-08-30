@@ -7,29 +7,15 @@ import ConfirmDialog from '../ui/ConfirmDialog';
 import Icon from '../ui/Icon';
 import { useProject } from '../../context/ProjectContext';
 import { downloadBOQCSV } from '../../utils/csvExport';
-import html2pdf from 'html2pdf.js';
+import { exportEstimatePDF } from '../../utils/pdfExport';
 
 const Results = () => {
-  const { projectData, analysisResults: analysis, resetProject, currency, currencyInfo, unitInfo } = useProject();
+  const { projectData, analysisResults: analysis, resetProject, currency, currencyInfo, unit, unitInfo } = useProject();
   const contentRef = useRef(null);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
 
   const downloadPDF = () => {
-    const element = contentRef.current;
-    const opt = {
-      margin: 0.5,
-      filename: `SitePilot_Estimate_${projectData.projectType}_${new Date().toISOString().split('T')[0]}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#141921',
-        logging: false
-      },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(element).save();
+    exportEstimatePDF(projectData, analysis, currency, unit);
   };
 
   const handleDownloadCSV = () => {
@@ -99,7 +85,11 @@ const Results = () => {
             >
               <Icon name="spreadsheet" size={16} style={{ marginRight: '0.4rem' }} /> Download BOQ (.CSV)
             </button>
-            <button className="btn-primary btn-hover" onClick={downloadPDF}>
+            <button
+              className="btn-primary btn-hover"
+              onClick={downloadPDF}
+              title="Download clean, high-contrast professional PDF estimate report"
+            >
               <Icon name="pdf" size={16} style={{ marginRight: '0.4rem' }} /> Download PDF Report
             </button>
           </div>

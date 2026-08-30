@@ -189,6 +189,25 @@ main:focus:not(:focus-visible) {
   border-color: var(--primary);
 }
 
+.rates-btn {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.rates-btn:hover {
+  border-color: var(--primary);
+  background: rgba(255, 107, 0, 0.1);
+  color: var(--primary);
+}
+
 .header-badge {
   background: var(--bg-card);
   padding: 0.45rem 0.9rem;

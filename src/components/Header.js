@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useProject } from '../context/ProjectContext';
+import PriceManagerModal from './PriceManager/PriceManagerModal';
+import Icon from './ui/Icon';
 import PRICING_CONFIG from '../pricing.config.json';
 
 const Header = () => {
   const { currency, setCurrency, unit, setUnit } = useProject();
+  const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
 
   return (
     <header className="header fade-in">
@@ -17,6 +20,17 @@ const Header = () => {
           </div>
 
           <div className="header-controls">
+            {/* Material Rates Manager Trigger */}
+            <button
+              type="button"
+              className="rates-btn btn-hover"
+              onClick={() => setIsPriceModalOpen(true)}
+              title="Inspect and edit live material unit prices & market inflation rates"
+            >
+              <Icon name="drafting" size={14} color="var(--primary)" style={{ marginRight: '0.35rem' }} />
+              <span>Material Rates</span>
+            </button>
+
             {/* Currency Selector */}
             <div className="control-group">
               <label htmlFor="currency-select" className="control-label">Currency:</label>
@@ -54,6 +68,11 @@ const Header = () => {
           </div>
         </div>
       </div>
+
+      <PriceManagerModal
+        isOpen={isPriceModalOpen}
+        onClose={() => setIsPriceModalOpen(false)}
+      />
     </header>
   );
 };

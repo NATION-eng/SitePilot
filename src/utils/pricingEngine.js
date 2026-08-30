@@ -4,8 +4,7 @@
  * Logic derived from standard Nigerian quantity surveying heuristics.
  * Covers both STRUCTURE (Shell) and FINISHING phases.
  * Uses projectType, budget, and timeline for accurate risk assessment.
- *
- * ⚠️  DO NOT hardcode prices here. Update src/pricing.config.json instead.
+ * Supports dynamic real-time market price overrides.
  */
 
 import PRICING_CONFIG from '../pricing.config.json';
@@ -13,9 +12,10 @@ import PRICING_CONFIG from '../pricing.config.json';
 /**
  * Calculates full construction cost estimate for a given project.
  * @param {Object} projectData - The form data collected from the user.
+ * @param {Object|null} customPrices - Optional custom material unit price overrides.
  * @returns {Object|null} Analysis results or null if buildingSize is 0.
  */
-export const calculateConstructionCosts = (projectData) => {
+export const calculateConstructionCosts = (projectData, customPrices = null) => {
   const { buildingSize, floors, projectType, budget, timeline } = projectData;
 
   // 1. Validate and Parse Inputs
@@ -25,6 +25,9 @@ export const calculateConstructionCosts = (projectData) => {
   const timelineMonths = parseFloat(timeline) || 0;
 
   if (sqm === 0) return null;
+
+  // Active material rates (custom overrides or baseline config)
+  const mat = { ...PRICING_CONFIG.materials, ...(customPrices || {}) };
 
   // 2. Get type multiplier
   const typeMultiplier = PRICING_CONFIG.typeMultipliers[projectType] || 1.0;
@@ -45,19 +48,19 @@ export const calculateConstructionCosts = (projectData) => {
   // Cement (Structure + Plaster + Floor Bed)
   const cementBags = Math.ceil(totalFloorArea * 4.2);
   quantities.cement = `${cementBags.toLocaleString()} bags`;
-  costs.cement = Math.ceil(cementBags * PRICING_CONFIG.materials.cement * typeMultiplier);
+  costs.cement = Math.ceil(cementBags * (mat.cement || PRICING_CONFIG.materials.cement) * typeMultiplier);
 
   // Blocks
   const blockCount = Math.ceil(wallArea * 10);
   quantities.blocks = `${blockCount.toLocaleString()} pieces (9")`;
-  costs.blocks = Math.ceil(blockCount * PRICING_CONFIG.materials.block_9inch * typeMultiplier);
+  costs.blocks = Math.ceil(blockCount * (mat.block_9inch || PRICING_CONFIG.materials.block_9inch) * typeMultiplier);
 
   // Steel
   let steelKgPerSqm = numFloors > 1 ? 25 : 10;
   if (projectType === 'industrial') steelKgPerSqm *= 1.15; // Heavier structure
   const steelTons = (totalFloorArea * steelKgPerSqm) / 1000;
   quantities.steel = `${steelTons.toFixed(1)} tons`;
-  costs.steel = Math.ceil(steelTons * PRICING_CONFIG.materials.steel_ton);
+  costs.steel = Math.ceil(steelTons * (mat.steel_ton || PRICING_CONFIG.materials.steel_ton));
 
   // Aggregates
   const sandTons = Math.ceil(cementBags * 0.15);
@@ -65,42 +68,42 @@ export const calculateConstructionCosts = (projectData) => {
   quantities.sand = `${sandTons} tons`;
   quantities.granite = `${graniteTons} tons`;
   costs.aggregates =
-    sandTons * PRICING_CONFIG.materials.sand_ton +
-    graniteTons * PRICING_CONFIG.materials.granite_ton;
+    sandTons * (mat.sand_ton || PRICING_CONFIG.materials.sand_ton) +
+    graniteTons * (mat.granite_ton || PRICING_CONFIG.materials.granite_ton);
 
   // Roofing
   quantities.roofing = `${roofArea} sqm`;
-  costs.roofing = roofArea * PRICING_CONFIG.materials.roofing_sqm;
+  costs.roofing = roofArea * (mat.roofing_sqm || PRICING_CONFIG.materials.roofing_sqm);
 
   // --- PHASE 2: FINISHING ---
 
   // Tiles
   const tileArea = Math.ceil(totalFloorArea * 1.25);
   quantities.tiles = `${tileArea} sqm`;
-  costs.tiles = Math.ceil(tileArea * PRICING_CONFIG.materials.tiles_sqm * typeMultiplier);
+  costs.tiles = Math.ceil(tileArea * (mat.tiles_sqm || PRICING_CONFIG.materials.tiles_sqm) * typeMultiplier);
 
   // POP Ceiling
   const popArea = Math.ceil(totalFloorArea);
   quantities.pop = `${popArea} sqm`;
-  costs.pop = Math.ceil(popArea * PRICING_CONFIG.materials.pop_sqm * typeMultiplier);
+  costs.pop = Math.ceil(popArea * (mat.pop_sqm || PRICING_CONFIG.materials.pop_sqm) * typeMultiplier);
 
   // Paint
   const paintDrums = Math.ceil((wallArea * 2.2) / 30);
   quantities.paint = `${paintDrums} drums`;
-  costs.paint = paintDrums * PRICING_CONFIG.materials.paint_drum;
+  costs.paint = paintDrums * (mat.paint_drum || PRICING_CONFIG.materials.paint_drum);
 
   // Windows
   const windowArea = Math.ceil(wallArea * 0.15);
   quantities.windows = `${windowArea} sqm`;
-  costs.windows = Math.ceil(windowArea * PRICING_CONFIG.materials.window_sqm * typeMultiplier);
+  costs.windows = Math.ceil(windowArea * (mat.window_sqm || PRICING_CONFIG.materials.window_sqm) * typeMultiplier);
 
   // Doors
   const internalDoors = Math.ceil(totalFloorArea / 15);
   const securityDoors = 2 * numFloors;
   quantities.doors = `${internalDoors} Internal, ${securityDoors} Security`;
   costs.doors =
-    internalDoors * PRICING_CONFIG.materials.door_internal +
-    securityDoors * PRICING_CONFIG.materials.door_security;
+    internalDoors * (mat.door_internal || PRICING_CONFIG.materials.door_internal) +
+    securityDoors * (mat.door_security || PRICING_CONFIG.materials.door_security);
 
   // --- PHASE 3: SERVICES & LABOUR ---
 
@@ -128,9 +131,9 @@ export const calculateConstructionCosts = (projectData) => {
 
   if (budgetAmount > 0) {
     if (budgetDiff > 0) {
-      budgetRisk = `Your budget is ₦${budgetDiff.toLocaleString()} above the estimated cost (${budgetDiffPercent}% surplus). Good buffer for unexpected expenses.`;
+      budgetRisk = `Your budget is ₦${budgetDiff.toLocaleString()} above the estimated cost (${budgetDiffPercent}% surplus). Good buffer for unexpected project expenses.`;
     } else if (budgetDiff < 0) {
-      budgetRisk = `Your budget is ₦${Math.abs(budgetDiff).toLocaleString()} below the estimated cost (${Math.abs(budgetDiffPercent)}% shortfall). Consider increasing budget or reducing scope.`;
+      budgetRisk = `Your budget is ₦${Math.abs(budgetDiff).toLocaleString()} below the estimated cost (${Math.abs(budgetDiffPercent)}% shortfall). Consider increasing budget or phasing interior finishes.`;
     } else {
       budgetRisk = `Your budget matches the estimated cost exactly. Consider adding a 10–15% contingency buffer.`;
     }
