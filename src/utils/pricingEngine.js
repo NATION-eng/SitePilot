@@ -112,7 +112,7 @@ export const calculateConstructionCosts = (projectData) => {
 
   const subTotal = directCost + mepCost + laborCost;
 
-  // Deterministic variance based on project inputs (5–10%)
+  // Deterministic variance based on project dimensions (5–10%)
   const varianceSeed = (sqm * 7 + numFloors * 13) % 100;
   const variancePct = 0.05 + (varianceSeed / 100) * 0.05;
   const contingencyCost = Math.ceil(subTotal * variancePct);
@@ -121,20 +121,21 @@ export const calculateConstructionCosts = (projectData) => {
 
   // --- RISK ASSESSMENT ---
 
-  // Budget risk
+  // Budget calculations
+  const budgetDiff = budgetAmount > 0 ? budgetAmount - grandTotal : 0;
+  const budgetDiffPercent = grandTotal > 0 ? Math.round((budgetDiff / grandTotal) * 100) : 0;
   let budgetRisk;
+
   if (budgetAmount > 0) {
-    const diff = budgetAmount - grandTotal;
-    const diffPercent = Math.round((diff / grandTotal) * 100);
-    if (diff > 0) {
-      budgetRisk = `Your budget of ₦${budgetAmount.toLocaleString()} is ₦${diff.toLocaleString()} above the estimated cost (${diffPercent}% surplus). Good buffer for unexpected costs.`;
-    } else if (diff < 0) {
-      budgetRisk = `Your budget of ₦${budgetAmount.toLocaleString()} is ₦${Math.abs(diff).toLocaleString()} below the estimated cost (${Math.abs(diffPercent)}% shortfall). Consider increasing budget or reducing scope.`;
+    if (budgetDiff > 0) {
+      budgetRisk = `Your budget is ₦${budgetDiff.toLocaleString()} above the estimated cost (${budgetDiffPercent}% surplus). Good buffer for unexpected expenses.`;
+    } else if (budgetDiff < 0) {
+      budgetRisk = `Your budget is ₦${Math.abs(budgetDiff).toLocaleString()} below the estimated cost (${Math.abs(budgetDiffPercent)}% shortfall). Consider increasing budget or reducing scope.`;
     } else {
-      budgetRisk = `Your budget matches the estimated cost exactly. Consider adding a 10–15% buffer.`;
+      budgetRisk = `Your budget matches the estimated cost exactly. Consider adding a 10–15% contingency buffer.`;
     }
   } else {
-    budgetRisk = 'No budget specified. Finishing materials (Tiles, POP) vary wildly by brand/quality.';
+    budgetRisk = 'No budget specified. Finishing materials (Tiles, POP, Fittings) vary significantly by brand and grade.';
   }
 
   // Timeline risk
@@ -144,19 +145,17 @@ export const calculateConstructionCosts = (projectData) => {
   );
   if (timelineMonths > 0) {
     if (timelineMonths < recommendedMonths * 0.7) {
-      timelineRisk = `${timelineMonths} months is aggressive for ${totalFloorArea} sqm (${typeName}). Recommended: ${recommendedMonths}+ months. Rushing may compromise quality.`;
+      timelineRisk = `${timelineMonths} months is aggressive for ${totalFloorArea} sqm (${typeName}). Recommended: ${recommendedMonths}+ months. Rushing construction may compromise structural curing.`;
     } else if (timelineMonths > recommendedMonths * 1.5) {
       timelineRisk = `${timelineMonths} months is generous for ${totalFloorArea} sqm. This allows for thorough execution and quality control.`;
     } else {
       timelineRisk = `${timelineMonths} months is realistic for ${totalFloorArea} sqm. Recommended range: ${Math.ceil(recommendedMonths * 0.8)}–${Math.ceil(recommendedMonths * 1.3)} months.`;
     }
   } else {
-    timelineRisk = 'No timeline specified. Imported finishes (Doors, Tiles) may face clearance delays.';
+    timelineRisk = 'No timeline specified. Standard allowance is 6–12 months depending on finishes procurement.';
   }
 
   // Overall risk level
-  const budgetDiffPercent =
-    budgetAmount > 0 ? ((budgetAmount - grandTotal) / grandTotal) * 100 : 0;
   let riskLevel;
   if (grandTotal > 50000000 || budgetDiffPercent < -20) {
     riskLevel = 'High';
@@ -169,29 +168,25 @@ export const calculateConstructionCosts = (projectData) => {
   // --- WARNINGS & RECOMMENDATIONS ---
 
   const warnings = [
-    'Prices are for STANDARD quality finishes. Luxury specs will double costs.',
-    'Professional supervision is assumed.',
-    'MEP costs are estimates; specific design required for accuracy.',
+    'Prices are for STANDARD quality finishes. Luxury specifications will increase costs.',
+    'Professional structural engineering supervision is assumed.',
+    'MEP costs are estimates based on standard loads; specific engineering designs required for tender.',
   ];
 
   if (projectType === 'commercial') {
-    warnings.push('Commercial projects require additional fire safety & accessibility compliance.');
+    warnings.push('Commercial projects require additional fire safety & accessibility compliance provisions.');
   }
   if (projectType === 'industrial') {
-    warnings.push('Industrial builds may need specialised foundations — consult a structural engineer.');
+    warnings.push('Industrial builds may need specialized foundation piling — consult a geotechnical engineer.');
   }
 
   const recommendations = [
-    'Buy cement in bulk to lock price.',
-    'Supervise iron benders closely to avoid steel waste.',
-    'Consider locally fabricated windows to save ~20%.',
+    'Procure cement and steel in bulk batches to hedge against market price volatility.',
+    'Supervise rebar cutting and bending closely on site to keep steel waste below 5%.',
+    'Consider factory-direct aluminium glazed windows to save up to 20% on fenestration costs.',
   ];
 
-  if (budgetAmount > 0 && budgetAmount < grandTotal) {
-    recommendations.unshift(
-      `Budget shortfall of ₦${(grandTotal - budgetAmount).toLocaleString()} — prioritise structure over finishes.`
-    );
-  }
+  const shortfallAmount = budgetAmount > 0 && budgetAmount < grandTotal ? (grandTotal - budgetAmount) : 0;
 
   return {
     pricesLastUpdated: PRICING_CONFIG._meta.lastUpdated,
@@ -214,9 +209,14 @@ export const calculateConstructionCosts = (projectData) => {
     },
     risk: {
       level: riskLevel,
+      budgetAmount,
+      grandTotal,
+      budgetDiff,
+      budgetDiffPercent,
       budgetRisk,
       timelineRisk,
     },
+    shortfallAmount,
     warnings,
     recommendations,
   };

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import Icon from '../ui/Icon';
+import { useProject } from '../../context/ProjectContext';
 
-const CostChart = ({ costs, currencySymbol = '₦' }) => {
+const CostChart = ({ costs }) => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const { formatMoney, convertMoney, currencyInfo } = useProject();
 
   if (!costs || !costs.total) return null;
 
-  // Aggregate costs into 5 primary QS cost centres
+  // Aggregate costs into 5 primary QS cost centres (in base NGN)
   const structureCost =
     (costs.cement || 0) +
     (costs.blocks || 0) +
@@ -34,14 +36,22 @@ const CostChart = ({ costs, currencySymbol = '₦' }) => {
     { label: 'Contingency', amount: contingencyCost, color: '#FFB800', iconName: 'contingency' }
   ].filter(s => s.amount > 0);
 
-  // Calculate SVG donut segments
-  const size = 180;
-  const strokeWidth = 26;
+  // SVG Geometry
+  const size = 190;
+  const strokeWidth = 22;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const center = size / 2;
 
   let cumulativePercent = 0;
+
+  const convertedTotal = convertMoney(total);
+  const formattedTotalShort =
+    convertedTotal >= 1000000
+      ? `${currencyInfo.symbol}${(convertedTotal / 1000000).toFixed(1)}M`
+      : convertedTotal >= 10000
+      ? `${currencyInfo.symbol}${(convertedTotal / 1000).toFixed(1)}K`
+      : `${currencyInfo.symbol}${convertedTotal.toLocaleString()}`;
 
   return (
     <div className="cost-chart-container">
@@ -63,7 +73,7 @@ const CostChart = ({ costs, currencySymbol = '₦' }) => {
             stroke="var(--bg-card, #141921)"
             strokeWidth={strokeWidth}
           />
-          {/* Segments */}
+          {/* Slices */}
           {slices.map((slice, i) => {
             const percent = slice.amount / total;
             const strokeDasharray = `${circumference * percent} ${circumference * (1 - percent)}`;
@@ -90,7 +100,7 @@ const CostChart = ({ costs, currencySymbol = '₦' }) => {
                   transformOrigin: '50% 50%',
                   transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                   cursor: 'pointer',
-                  opacity: hoveredIndex !== null && !isHovered ? 0.5 : 1
+                  opacity: hoveredIndex !== null && !isHovered ? 0.4 : 1
                 }}
                 onMouseEnter={() => setHoveredIndex(i)}
                 onMouseLeave={() => setHoveredIndex(null)}
@@ -112,9 +122,9 @@ const CostChart = ({ costs, currencySymbol = '₦' }) => {
             </>
           ) : (
             <>
-              <div className="donut-center-total-label">Total</div>
-              <div className="donut-center-total-val">
-                {currencySymbol}{total > 1000000 ? `${(total / 1000000).toFixed(1)}M` : total.toLocaleString()}
+              <div className="donut-center-total-label">Est. Total</div>
+              <div className="donut-center-total-val" title={formatMoney(total)}>
+                {formattedTotalShort}
               </div>
             </>
           )}
@@ -135,12 +145,12 @@ const CostChart = ({ costs, currencySymbol = '₦' }) => {
               onMouseLeave={() => setHoveredIndex(null)}
             >
               <div className="legend-indicator" style={{ backgroundColor: slice.color }}>
-                <Icon name={slice.iconName} size={12} color="#fff" />
+                <Icon name={slice.iconName} size={11} color="#fff" />
               </div>
               <div className="legend-text">
                 <span className="legend-label">{slice.label}</span>
                 <span className="legend-amount">
-                  {currencySymbol}{slice.amount.toLocaleString()} ({pct}%)
+                  {formatMoney(slice.amount)} ({pct}%)
                 </span>
               </div>
             </div>

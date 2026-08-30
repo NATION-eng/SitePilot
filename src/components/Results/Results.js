@@ -10,7 +10,7 @@ import { downloadBOQCSV } from '../../utils/csvExport';
 import html2pdf from 'html2pdf.js';
 
 const Results = () => {
-  const { projectData, analysisResults: analysis, resetProject, currencyInfo, unitInfo } = useProject();
+  const { projectData, analysisResults: analysis, resetProject, currency, currencyInfo, unitInfo } = useProject();
   const contentRef = useRef(null);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
 
@@ -33,7 +33,7 @@ const Results = () => {
   };
 
   const handleDownloadCSV = () => {
-    downloadBOQCSV(projectData, analysis, currencyInfo.symbol);
+    downloadBOQCSV(projectData, analysis, currency);
   };
 
   return (
@@ -47,7 +47,7 @@ const Results = () => {
             </div>
             
             <div className="currency-pill" data-html2canvas-ignore="true">
-              Displaying in <strong>{currencyInfo.name} ({currencyInfo.symbol})</strong>
+              Active Currency: <strong>{currencyInfo.name} ({currencyInfo.symbol} {currency})</strong>
             </div>
           </div>
 
@@ -80,7 +80,7 @@ const Results = () => {
 
           <div className="results-grid slide-up" style={{ animationDelay: '0.3s' }}>
             <MaterialEstimates materials={analysis.materials} />
-            <CostAnalysis costs={analysis.costs} currencySymbol={currencyInfo.symbol} />
+            <CostAnalysis costs={analysis.costs} />
             <RiskAssessment risk={analysis.risk} />
             <Recommendations recommendations={analysis.recommendations} />
           </div>

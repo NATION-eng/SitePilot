@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import CostChart from './CostChart';
 import Icon from '../ui/Icon';
+import { useProject } from '../../context/ProjectContext';
 
-const CostAnalysis = ({ costs, currencySymbol = '₦' }) => {
+const CostAnalysis = ({ costs }) => {
   const [viewMode, setViewMode] = useState('chart'); // 'chart' | 'table'
+  const { formatMoney } = useProject();
 
   if (!costs) return null;
 
@@ -37,7 +39,7 @@ const CostAnalysis = ({ costs, currencySymbol = '₦' }) => {
       </div>
 
       {viewMode === 'chart' ? (
-        <CostChart costs={costs} currencySymbol={currencySymbol} />
+        <CostChart costs={costs} />
       ) : (
         <div className="cost-items-list fade-in" style={{ marginTop: '1rem' }}>
           {Object.entries(costs)
@@ -49,7 +51,7 @@ const CostAnalysis = ({ costs, currencySymbol = '₦' }) => {
                     ? 'MEP (Mechanical/Electrical/Plumbing)'
                     : key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                 </span>
-                <span className="material-quantity">{currencySymbol}{value.toLocaleString()}</span>
+                <span className="material-quantity">{formatMoney(value)}</span>
               </div>
             ))}
         </div>
@@ -57,7 +59,7 @@ const CostAnalysis = ({ costs, currencySymbol = '₦' }) => {
 
       <div className="total-cost">
         <div className="total-cost-label">Estimated Total Project Cost</div>
-        <div className="total-cost-amount">{currencySymbol}{costs.total.toLocaleString()}</div>
+        <div className="total-cost-amount">{formatMoney(costs.total)}</div>
       </div>
     </div>
   );

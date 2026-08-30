@@ -56,8 +56,8 @@ describe('SitePilot BOQ CSV Export Utility', () => {
     expect(generateBOQCSV({}, {})).toBe('');
   });
 
-  test('generates valid CSV starting with UTF-8 BOM', () => {
-    const csv = generateBOQCSV(sampleProject, sampleAnalysis, '₦');
+  test('generates valid CSV starting with UTF-8 BOM in base NGN', () => {
+    const csv = generateBOQCSV(sampleProject, sampleAnalysis, 'NGN');
     expect(csv.startsWith('\uFEFF')).toBe(true);
     expect(csv).toContain('SITEPILOT - PRE-CONSTRUCTION BILL OF QUANTITIES (BOQ)');
     expect(csv).toContain('PHASE 1: SUBSTRUCTURE & SUPERSTRUCTURE');
@@ -69,12 +69,14 @@ describe('SitePilot BOQ CSV Export Utility', () => {
   });
 
   test('properly escapes commas and quotes in project notes', () => {
-    const csv = generateBOQCSV(sampleProject, sampleAnalysis, '₦');
+    const csv = generateBOQCSV(sampleProject, sampleAnalysis, 'NGN');
     expect(csv).toContain('"Premium finish requested, high water table area"');
   });
 
-  test('adapts to target currency symbol', () => {
-    const csvUSD = generateBOQCSV(sampleProject, sampleAnalysis, '$');
-    expect(csvUSD).toContain('ESTIMATED COST ($)');
+  test('converts cost numbers when exporting in USD', () => {
+    const csvUSD = generateBOQCSV(sampleProject, sampleAnalysis, 'USD');
+    expect(csvUSD).toContain('ESTIMATED COST (USD)');
+    // 115,857,245 * 0.000645 = ~74728
+    expect(csvUSD).toContain('74728');
   });
 });
