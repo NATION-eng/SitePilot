@@ -4,7 +4,7 @@ import { useProject } from '../../context/ProjectContext';
 import Input from '../ui/Input';
 
 const StepTwo = () => {
-  const { projectData, updateProjectData, nextStep, prevStep } = useProject();
+  const { projectData, updateProjectData, nextStep, prevStep, unitInfo } = useProject();
   const { errors, validate, validateMultiple } = useFormValidation();
 
   const handleNext = () => {
@@ -41,7 +41,7 @@ const StepTwo = () => {
 
       <div className="responsive-form-row">
         <Input
-          label="Building Size (sqm)"
+          label={`Building Area (${unitInfo.symbol})`}
           name="buildingSize"
           type="number"
           min={1}

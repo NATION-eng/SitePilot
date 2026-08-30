@@ -117,9 +117,9 @@ main:focus:not(:focus-visible) {
   padding: 0 2rem;
 }
 
-/* --- Header --- */
+/* --- Header & Header Controls --- */
 .header {
-  padding: 2rem 0;
+  padding: 1.5rem 0;
   border-bottom: 2px solid var(--border);
   background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-surface) 100%);
 }
@@ -127,6 +127,8 @@ main:focus:not(:focus-visible) {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 .logo {
   display: flex;
@@ -154,9 +156,42 @@ main:focus:not(:focus-visible) {
   letter-spacing: -0.02em;
 }
 .logo-accent { color: var(--primary); }
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.control-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.header-select {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.header-select:focus {
+  border-color: var(--primary);
+}
+
 .header-badge {
   background: var(--bg-card);
-  padding: 0.5rem 1rem;
+  padding: 0.45rem 0.9rem;
   border-radius: 20px;
   font-family: var(--font-display);
   font-size: 0.75rem;
@@ -280,7 +315,7 @@ main:focus:not(:focus-visible) {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 3rem;
-  max-width: 840px;
+  max-width: 880px;
   margin: 0 auto;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
@@ -359,9 +394,11 @@ main:focus:not(:focus-visible) {
   display: flex;
   gap: 1rem;
   margin-top: 2rem;
+  flex-wrap: wrap;
 }
 .btn-primary {
   flex: 1;
+  min-width: 160px;
   padding: 1rem;
   border: none;
   border-radius: 6px;
@@ -371,6 +408,7 @@ main:focus:not(:focus-visible) {
   transition: all 0.3s ease;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   color: white;
+  text-align: center;
 }
 .btn-primary.disabled,
 .btn-primary:disabled {
@@ -379,6 +417,7 @@ main:focus:not(:focus-visible) {
 }
 .btn-secondary {
   flex: 1;
+  min-width: 160px;
   padding: 1rem;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -388,6 +427,7 @@ main:focus:not(:focus-visible) {
   transition: all 0.3s ease;
   background: var(--bg-elevated);
   color: var(--text-primary);
+  text-align: center;
 }
 
 /* --- Loading --- */
@@ -409,8 +449,17 @@ main:focus:not(:focus-visible) {
   font-size: 1.05rem;
 }
 
-/* --- Results --- */
+/* --- Results & Header Badges --- */
 .results-container { padding-top: 3rem; }
+
+.results-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
 
 .estimate-badge {
   display: inline-flex;
@@ -423,7 +472,18 @@ main:focus:not(:focus-visible) {
   font-weight: 600;
   color: var(--text-primary);
   border: 1px solid rgba(255, 107, 0, 0.4);
-  margin-bottom: 1rem;
+}
+
+.currency-pill {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  padding: 0.35rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.currency-pill strong {
+  color: var(--primary);
 }
 
 .prices-disclaimer {
@@ -435,7 +495,6 @@ main:focus:not(:focus-visible) {
   border-radius: 6px;
   border-left: 3px solid var(--primary);
 }
-
 .prices-disclaimer code {
   color: var(--primary);
   background: rgba(255, 107, 0, 0.1);
@@ -483,12 +542,54 @@ main:focus:not(:focus-visible) {
 }
 .card-icon { font-size: 1.5rem; }
 
+/* Toggle bar for cost view */
+.card-header-with-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.view-toggle {
+  display: flex;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px;
+}
+.toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.3rem 0.65rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.toggle-btn-active {
+  background: var(--primary);
+  color: white;
+}
+
+/* Material List Items with Icons */
 .material-item {
   display: flex;
   justify-content: space-between;
-  padding: 0.8rem 0;
+  align-items: center;
+  padding: 0.75rem 0;
   border-bottom: 1px solid var(--border);
   font-size: 0.95rem;
+}
+.material-name-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.material-emoji {
+  font-size: 1.1rem;
 }
 .material-name { font-weight: 500; }
 .material-quantity {
@@ -501,7 +602,7 @@ main:focus:not(:focus-visible) {
   background: linear-gradient(135deg, rgba(255, 107, 0, 0.15) 0%, rgba(255, 107, 0, 0.05) 100%);
   padding: 1.25rem;
   border-radius: 8px;
-  margin-top: 1rem;
+  margin-top: 1.25rem;
   border: 1px solid rgba(255, 107, 0, 0.3);
 }
 .total-cost-label {
@@ -514,6 +615,91 @@ main:focus:not(:focus-visible) {
   font-weight: 800;
   font-family: var(--font-display);
   color: var(--primary);
+}
+
+/* --- Donut Chart Styles --- */
+.cost-chart-container {
+  padding: 0.5rem 0;
+}
+.donut-wrapper {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 1.25rem;
+}
+.donut-svg {
+  width: 100%;
+  height: 100%;
+}
+.donut-center-info {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+.donut-center-percent {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.donut-center-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.2rem;
+}
+.donut-center-total-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.donut-center-total-val {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.legend-item:hover,
+.legend-item-active {
+  background: var(--bg-card);
+}
+.legend-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.legend-text {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 0.85rem;
+}
+.legend-label {
+  color: var(--text-primary);
+}
+.legend-amount {
+  font-family: var(--font-display);
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 /* --- Risk Badges --- */
@@ -597,12 +783,15 @@ main:focus:not(:focus-visible) {
   .responsive-grid-3 { grid-template-columns: 1fr; }
   .responsive-grid-2 { grid-template-columns: 1fr; gap: 1.5rem; }
   .responsive-form-row { grid-template-columns: 1fr; }
-  .header-content { flex-direction: column; gap: 1rem; }
+  .header-content { flex-direction: column; gap: 1rem; align-items: flex-start; }
+  .header-controls { width: 100%; justify-content: space-between; }
   .container { padding: 0 1rem; }
   .hero-title { font-size: 2.2rem; line-height: 1.2; }
   .form-card { padding: 2rem 1.25rem; }
   .total-cost-amount { font-size: 1.8rem; }
   .results-grid { grid-template-columns: 1fr; }
+  .results-actions { flex-direction: column; }
+  .results-actions button { width: 100%; }
 }
 
 @media (max-width: 480px) {
@@ -611,4 +800,5 @@ main:focus:not(:focus-visible) {
   .button-group .btn-primary,
   .button-group .btn-secondary { width: 100%; }
   .hero-actions { flex-direction: column; align-items: center; }
+  .header-controls { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
 }

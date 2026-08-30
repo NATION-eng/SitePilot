@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, useRef, useEffect } f
 import { useMultiStepForm } from '../hooks/useMultiStepForm';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { calculateConstructionCosts } from '../utils/pricingEngine';
+import { getCurrencyInfo, getUnitInfo, formatCurrency, convertCurrency } from '../utils/currencyFormatter';
 
 const ProjectContext = createContext();
 
@@ -18,6 +19,8 @@ const defaultProjectData = {
 export const ProjectProvider = ({ children }) => {
   const [view, setView] = useState('hero');
   const [projectData, setProjectData] = useLocalStorage('sitepilot-project', defaultProjectData);
+  const [currency, setCurrency] = useLocalStorage('sitepilot-currency', 'NGN');
+  const [unit, setUnit] = useLocalStorage('sitepilot-unit', 'sqm');
   const [analysisResults, setAnalysisResults] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -113,6 +116,9 @@ export const ProjectProvider = ({ children }) => {
     }, 1800);
   }, [projectData, goToStep, announce]);
 
+  const currencyInfo = getCurrencyInfo(currency);
+  const unitInfo = getUnitInfo(unit);
+
   const value = {
     view,
     currentStep,
@@ -120,6 +126,14 @@ export const ProjectProvider = ({ children }) => {
     isFirstStep,
     isLastStep,
     projectData,
+    currency,
+    setCurrency,
+    currencyInfo,
+    unit,
+    setUnit,
+    unitInfo,
+    formatMoney: (amountInNGN) => formatCurrency(amountInNGN, currency),
+    convertMoney: (amountInNGN) => convertCurrency(amountInNGN, currency),
     analysisResults,
     isLoading,
     error,

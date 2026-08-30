@@ -5,10 +5,11 @@ import RiskAssessment from './RiskAssessment';
 import Recommendations from './Recommendations';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import { useProject } from '../../context/ProjectContext';
+import { downloadBOQCSV } from '../../utils/csvExport';
 import html2pdf from 'html2pdf.js';
 
 const Results = () => {
-  const { projectData, analysisResults: analysis, resetProject } = useProject();
+  const { projectData, analysisResults: analysis, resetProject, currencyInfo, unitInfo } = useProject();
   const contentRef = useRef(null);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
 
@@ -30,20 +31,30 @@ const Results = () => {
     html2pdf().set(opt).from(element).save();
   };
 
+  const handleDownloadCSV = () => {
+    downloadBOQCSV(projectData, analysis, currencyInfo.symbol);
+  };
+
   return (
     <div className="results-container fade-in">
       <div className="container">
         <div className="form-card slide-up" ref={contentRef}>
-          <div className="estimate-badge">
-            <span>📐</span>
-            <span>Smart Estimate — QS Algorithm</span>
+          <div className="results-top-bar">
+            <div className="estimate-badge">
+              <span>📐</span>
+              <span>Smart Estimate — QS Algorithm</span>
+            </div>
+            
+            <div className="currency-pill" data-html2canvas-ignore="true">
+              Displaying in <strong>{currencyInfo.name} ({currencyInfo.symbol})</strong>
+            </div>
           </div>
 
           <h2 id="results-title" className="section-title">
             {projectData.projectType.charAt(0).toUpperCase() + projectData.projectType.slice(1)} Project Estimate
           </h2>
           <p className="section-subtitle">
-            {projectData.buildingSize} sqm • {projectData.floors} floors • {projectData.location}
+            {projectData.buildingSize} {unitInfo.symbol} • {projectData.floors} floors • {projectData.location}
           </p>
 
           {analysis.pricesLastUpdated && (
@@ -65,19 +76,28 @@ const Results = () => {
 
           <div className="results-grid slide-up" style={{ animationDelay: '0.3s' }}>
             <MaterialEstimates materials={analysis.materials} />
-            <CostAnalysis costs={analysis.costs} />
+            <CostAnalysis costs={analysis.costs} currencySymbol={currencyInfo.symbol} />
             <RiskAssessment risk={analysis.risk} />
             <Recommendations recommendations={analysis.recommendations} />
           </div>
 
-          <div className="button-group" style={{ marginTop: '2rem' }} data-html2canvas-ignore="true">
+          <div className="button-group results-actions" style={{ marginTop: '2rem' }} data-html2canvas-ignore="true">
             <button
               className="btn-secondary btn-hover"
               onClick={() => setShowConfirmReset(true)}
             >
               New Estimate
             </button>
-            <button className="btn-primary btn-hover" onClick={downloadPDF}>Download PDF Report</button>
+            <button
+              className="btn-secondary btn-hover"
+              onClick={handleDownloadCSV}
+              title="Download spreadsheet compatible with Microsoft Excel and Google Sheets"
+            >
+              📊 Download BOQ (.CSV)
+            </button>
+            <button className="btn-primary btn-hover" onClick={downloadPDF}>
+              📄 Download PDF Report
+            </button>
           </div>
         </div>
       </div>
@@ -85,7 +105,7 @@ const Results = () => {
       <ConfirmDialog
         isOpen={showConfirmReset}
         title="Start a new estimate?"
-        message="This will clear your current estimate results and inputs. If needed, download the PDF first."
+        message="This will clear your current estimate results and inputs. If needed, download the PDF or BOQ spreadsheet first."
         confirmText="Yes, start new"
         cancelText="Keep current estimate"
         onConfirm={() => {

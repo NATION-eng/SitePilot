@@ -4,7 +4,7 @@ import { useProject } from '../../context/ProjectContext';
 import Input from '../ui/Input';
 
 const StepThree = () => {
-  const { projectData, updateProjectData, prevStep, generateAnalysis } = useProject();
+  const { projectData, updateProjectData, prevStep, generateAnalysis, currencyInfo } = useProject();
   const { errors, validate, validateMultiple } = useFormValidation();
 
   const handleGenerate = () => {
@@ -24,7 +24,7 @@ const StepThree = () => {
       <p className="section-subtitle">Set your financial and time constraints</p>
 
       <Input
-        label="Budget Range (₦)"
+        label={`Budget Range (${currencyInfo.symbol})`}
         name="budget"
         type="number"
         min={1}
@@ -35,7 +35,7 @@ const StepThree = () => {
           validate('budget', value);
         }}
         error={errors.budget}
-        placeholder="e.g., 15000000"
+        placeholder="e.g., 45000000"
         required
       />
 

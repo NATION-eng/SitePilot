@@ -1,10 +1,22 @@
 {
   "_meta": {
     "description": "SitePilot Construction Pricing Config — Nigerian market rates",
-    "currency": "NGN",
+    "baseCurrency": "NGN",
     "lastUpdated": "2026-08-28",
     "nextReviewDue": "2026-11-28",
     "source": "Nigerian QS heuristics + 2026 Q3 market survey"
+  },
+  "currencies": {
+    "NGN": { "symbol": "₦", "name": "Nigerian Naira", "rate": 1.0 },
+    "USD": { "symbol": "$", "name": "US Dollar", "rate": 0.000645 },
+    "GBP": { "symbol": "£", "name": "British Pound", "rate": 0.000488 },
+    "EUR": { "symbol": "€", "name": "Euro", "rate": 0.000571 },
+    "GHS": { "symbol": "GH₵", "name": "Ghanaian Cedi", "rate": 0.010 },
+    "KES": { "symbol": "KSh ", "name": "Kenyan Shilling", "rate": 0.0833 }
+  },
+  "units": {
+    "sqm": { "name": "Square Metres", "symbol": "sqm", "factor": 1.0 },
+    "sqft": { "name": "Square Feet", "symbol": "sq ft", "factor": 10.7639 }
   },
   "materials": {
     "cement": 9500,
