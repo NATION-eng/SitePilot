@@ -10,23 +10,30 @@
 │  └────────┘  └────────┘  └──────────┘  │
 └─────────────────┬───────────────────────┘
                   │
-                  │ HTTP Request
+                  │ Function Call (no network)
                   ▼
 ┌─────────────────────────────────────────┐
-│         Anthropic Claude API            │
-│  (AI Construction Intelligence Engine)  │
+│      pricingEngine.js (local)           │
+│  Deterministic QS Formula Engine        │
+│  • Phase 1: Structure costs             │
+│  • Phase 2: Finishing costs             │
+│  • Phase 3: Labour & MEP                │
+│  • Phase 4: Contingency                 │
 └─────────────────┬───────────────────────┘
                   │
-                  │ JSON Response
+                  │ Results object
                   ▼
 ┌─────────────────────────────────────────┐
-│          Results Processing             │
+│          Results Display                │
 │  • Material Estimates                   │
 │  • Cost Analysis                        │
 │  • Risk Assessment                      │
 │  • Recommendations                      │
 └─────────────────────────────────────────┘
 ```
+
+> ℹ️ **No external API calls are made in v1.x.** All calculations run locally in the browser
+> using the Nigerian QS heuristics defined in `pricingEngine.js` and priced via `pricing.config.json`.
 
 ---
 
@@ -36,37 +43,62 @@
 sitepilot/
 │
 ├── public/
-│   └── index.html              # HTML template
+│   └── index.html              # HTML template (non-blocking font preload)
 │
 ├── src/
 │   ├── components/             # React components
 │   │   ├── Header.js           # App header with logo
 │   │   ├── Hero.js             # Landing page hero section
-│   │   ├── FormContainer.js    # Form wrapper component
-│   │   ├── ProgressBar.js      # Multi-step progress indicator
+│   │   ├── FormContainer.js    # Step switcher + ProgressBar host
+│   │   ├── ProgressBar.js      # Multi-step progress indicator (accessible)
+│   │   ├── SEO.js              # Dynamic <title> + <meta description> side-effect
+│   │   ├── ErrorBoundary.js    # Class component — catches React tree errors
 │   │   │
 │   │   ├── Steps/              # Form steps
-│   │   │   ├── StepOne.js      # Project type selection
+│   │   │   ├── StepOne.js      # Project type selection (keyboard accessible)
 │   │   │   ├── StepTwo.js      # Project details input
 │   │   │   ├── StepThree.js    # Budget & timeline
-│   │   │   └── LoadingStep.js  # AI processing indicator
+│   │   │   └── LoadingStep.js  # Animated calculation progress indicator
 │   │   │
-│   │   └── Results/            # Results display
-│   │       ├── Results.js      # Main results container
-│   │       ├── MaterialEstimates.js
-│   │       ├── CostAnalysis.js
-│   │       ├── RiskAssessment.js
-│   │       └── Recommendations.js
+│   │   ├── Results/            # Results display
+│   │   │   ├── Results.js      # Main results container + PDF export
+│   │   │   ├── MaterialEstimates.js
+│   │   │   ├── CostAnalysis.js
+│   │   │   ├── RiskAssessment.js
+│   │   │   └── Recommendations.js
+│   │   │
+│   │   └── ui/                 # Reusable primitive components
+│   │       ├── Button.js
+│   │       ├── Button.module.css
+│   │       ├── Input.js        # Accessible input with label + error binding
+│   │       ├── Input.module.css
+│   │       └── ConfirmDialog.js  # Modal dialog for destructive action confirmations
 │   │
-│   ├── App.js                  # Main app logic & state
-│   ├── index.js                # React entry point
-│   └── styles.js               # Centralized styling
+│   ├── context/
+│   │   └── ProjectContext.js   # Global app state (view, steps, project data, results)
+│   │
+│   ├── hooks/
+│   │   ├── useFormValidation.js  # Field-level validation (useReducer-based)
+│   │   ├── useLocalStorage.js    # Persistent state across page refreshes
+│   │   └── useMultiStepForm.js   # Step navigation logic
+│   │
+│   ├── utils/
+│   │   └── pricingEngine.js    # Core cost calculation (reads pricing.config.json)
+│   │
+│   ├── pricing.config.json     # Material & labour rates (update without redeploy)
+│   ├── App.js                  # Root layout + view switcher + a11y focus management
+│   ├── App.css                 # Global design tokens (CSS custom properties) + utilities
+│   └── index.js                # React entry point (wrapped in ErrorBoundary)
 │
-├── package.json                # Dependencies
-├── README.md                   # User documentation
-├── DEPLOYMENT.md               # Deployment guide
+├── src/__tests__/
+│   ├── pricingEngine.test.js   # Unit tests: known inputs → known outputs
+│   └── useFormValidation.test.js
+│
+├── package.json
+├── README.md
+├── DEPLOYMENT.md
 ├── ARCHITECTURE.md             # This file
-└── .gitignore                  # Git ignore rules
+└── .gitignore
 ```
 
 ---
@@ -74,119 +106,159 @@ sitepilot/
 ## 🧩 Component Hierarchy
 
 ```
-App (State Management)
-│
-├── Header (Static)
-│
-├── Hero (Landing)
-│   └── CTA Button → startProject()
-│
-├── FormContainer (Multi-step form)
-│   ├── ProgressBar
-│   └── Dynamic Steps
-│       ├── StepOne (Project Type)
-│       ├── StepTwo (Details)
-│       ├── StepThree (Budget)
-│       └── LoadingStep (AI Processing)
-│
-└── Results (Analysis Display)
-    ├── MaterialEstimates
-    ├── CostAnalysis
-    ├── RiskAssessment
-    └── Recommendations
+index.js
+└── ErrorBoundary (catches all React tree errors)
+    └── ProjectProvider (global state)
+        └── App (root layout + SEO)
+            │
+            ├── Header (static)
+            │
+            ├── [view === 'hero'] Hero
+            │   └── CTA Button → startProject()
+            │
+            ├── [view === 'form'] section
+            │   ├── Error State (if error)
+            │   └── FormContainer
+            │       ├── ProgressBar (reads currentStep, progress from context)
+            │       └── form-card
+            │           ├── [step 1] StepOne (project type)
+            │           ├── [step 2] StepTwo (details)
+            │           ├── [step 3] StepThree (budget / timeline)
+            │           └── [step 4] LoadingStep (animated phases)
+            │
+            └── [view === 'results'] Results
+                ├── MaterialEstimates
+                ├── CostAnalysis
+                ├── RiskAssessment
+                └── Recommendations
 ```
 
 ---
 
 ## 🔄 State Management
 
-### App-level State (src/App.js):
+### Global State — `src/context/ProjectContext.js`
 
 ```javascript
+// View routing
 const [view, setView] = useState('hero');
-// Controls: 'hero' | 'form' | 'results'
+// 'hero' | 'form' | 'results'
 
-const [currentStep, setCurrentStep] = useState(1);
-// Controls: 1, 2, 3, 4 (form steps)
+// Step navigation (via useMultiStepForm hook)
+currentStep  // 1–4
+progress     // 0–100 (%)
+isFirstStep, isLastStep
 
-const [projectData, setProjectData] = useState({
-  projectType: '',      // 'residential' | 'commercial' | 'industrial'
-  location: '',         // string
-  buildingSize: '',     // number (sqm)
-  floors: '',           // number
-  budget: '',           // number (₦)
-  timeline: '',         // number (months)
-  notes: ''            // string (optional)
+// Project inputs (persisted to localStorage)
+const [projectData] = useLocalStorage('sitepilot-project', {
+  projectType: '',   // 'residential' | 'commercial' | 'industrial'
+  location: '',      // string (min 2 chars)
+  buildingSize: '',  // number (sqm, 1–100,000)
+  floors: '',        // number (1–100)
+  budget: '',        // number (₦, 1–10,000,000,000)
+  timeline: '',      // number (months, 1–120)
+  notes: ''          // string (optional, max 500 chars)
 });
 
+// Results & async state
 const [analysisResults, setAnalysisResults] = useState(null);
-// Stores AI-generated analysis
+const [isLoading, setIsLoading] = useState(false);
+const [error, setError] = useState(null);
+
+// Screen-reader announcement channel
+const [announcement, setAnnouncement] = useState('');
 ```
 
-### State Flow:
+### State Flow
 
 ```
-Hero → Click "Start Project"
+Hero → "Get Free Estimate"
+  → startProject() → view='form', step=1
   ↓
-Form (Step 1) → Select Project Type → updateProjectData()
+Step 1 → Select project type → updateProjectData()
   ↓
-Form (Step 2) → Enter Details → updateProjectData()
+Step 2 → Enter location, size, floors → updateProjectData()
+  → validate() on each field
   ↓
-Form (Step 3) → Set Budget/Timeline → updateProjectData()
+Step 3 → Enter budget, timeline → updateProjectData()
+  → validate() on each field
   ↓
-Form (Step 4) → Loading → generateAnalysis()
+"Generate Analysis" → generateAnalysis()
+  → step=4 (LoadingStep with animated phases)
+  → calculateConstructionCosts(projectData)  [synchronous]
+  → setAnalysisResults(results)
+  → view='results'
   ↓
-API Call → Claude AI → JSON Response
-  ↓
-Results → Display Analysis → setAnalysisResults()
+Results → ConfirmDialog before resetProject()
+  → view='hero'
 ```
 
 ---
 
-## 🤖 AI Integration
+## 🧮 Pricing Engine
 
-### API Endpoint:
-```
-POST https://api.anthropic.com/v1/messages
-```
+### Source: `src/utils/pricingEngine.js`
+### Config: `src/pricing.config.json`
 
-### Request Format:
-```javascript
-{
-  model: 'claude-sonnet-4-20250514',
-  max_tokens: 1000,
-  messages: [{
-    role: 'user',
-    content: 'Project details + Analysis request'
-  }]
-}
-```
+The engine runs **entirely in the browser** — no network request is made.
 
-### Response Structure:
+#### Calculation Phases
+
+| Phase | What's Calculated |
+|---|---|
+| 1 — Structure | Cement, blocks, steel (per floor), aggregates, roofing |
+| 2 — Finishing | Tiles, POP ceiling, paint, windows, doors |
+| 3 — Services & Labour | MEP = 18% of direct cost; Labour = 25% of direct cost |
+| 4 — Contingency | 5–10% of subtotal (deterministic seed from project dimensions) |
+
+#### Type Multipliers
+
+| Project Type | Cost Multiplier |
+|---|---|
+| Residential | ×1.0 |
+| Commercial | ×1.2 |
+| Industrial | ×1.1 |
+
+#### Output Shape
+
 ```json
 {
   "materials": {
-    "cement": "X bags",
-    "blocks": "X pieces",
-    "steel": "X tons",
-    "sand": "X tons",
-    "gravel": "X tons",
-    "roofing": "X sqm"
+    "cement": "420 bags",
+    "blocks": "1,500 pieces (9\")",
+    "steel": "1.0 tons",
+    "sand": "63 tons",
+    "granite": "84 tons",
+    "roofing": "140 sqm",
+    "tiles": "125 sqm",
+    "pop": "100 sqm",
+    "paint": "9 drums",
+    "windows": "23 sqm",
+    "doors": "6 Internal, 2 Security"
   },
   "costs": {
-    "materials": 5000000,
-    "labor": 3000000,
-    "equipment": 1500000,
-    "contingency": 950000,
-    "total": 10450000
+    "cement": 3990000,
+    "blocks": 750000,
+    "steel": 1400000,
+    "aggregates": 1218000,
+    "roofing": 1050000,
+    "tiles": 812500,
+    "pop": 800000,
+    "paint": 315000,
+    "windows": 1035000,
+    "doors": 660000,
+    "m_e_p": 2372400,
+    "labor": 3296400,
+    "contingency": 845000,
+    "total": 18543300
   },
   "risk": {
-    "level": "Medium",
-    "budgetRisk": "Budget is slightly below average...",
-    "timelineRisk": "Timeline is realistic for project size..."
+    "level": "Low | Medium | High",
+    "budgetRisk": "string",
+    "timelineRisk": "string"
   },
-  "warnings": ["Warning 1", "Warning 2"],
-  "recommendations": ["Rec 1", "Rec 2", "Rec 3"]
+  "warnings": ["string"],
+  "recommendations": ["string"]
 }
 ```
 
@@ -194,269 +266,98 @@ POST https://api.anthropic.com/v1/messages
 
 ## 🎨 Styling Architecture
 
-### Design System:
+### Design Tokens (`src/App.css` — `:root`)
 
-**Colors:**
-```javascript
---primary: #FF6B00        // Brand orange
---bg-dark: #0A0E14        // Background
---bg-card: #141921        // Cards
---text-primary: #E8ECF0   // Main text
---text-secondary: #8B95A5 // Secondary text
---success: #00D9A3        // Success states
---warning: #FFB800        // Warnings
---danger: #FF4757         // Errors
+```css
+--primary: #FF6B00;          /* Brand orange */
+--bg-dark: #0A0E14;          /* Page background */
+--bg-card: #141921;          /* Card surface */
+--bg-elevated: #1C2128;      /* Inputs, elevated surfaces */
+--border: #2A3140;           /* Borders */
+--text-primary: #E8ECF0;     /* Body text */
+--text-secondary: #8B95A5;   /* Muted text */
+--success: #00D9A3;          /* Low risk, complete */
+--warning: #FFB800;          /* Warnings */
+--danger: #FF4757;           /* Errors, high risk */
+--font-display: 'IBM Plex Mono', monospace;
+--font-body: 'Work Sans', sans-serif;
 ```
 
-**Typography:**
-- Display: IBM Plex Mono (monospace, technical)
-- Body: Work Sans (clean, professional)
+### Style Layers
 
-**Layout:**
-- Container max-width: 1400px
-- Padding: 2rem
-- Card border-radius: 12px
-- Button border-radius: 6px-8px
+| Layer | Location | Used For |
+|---|---|---|
+| Global tokens + utilities | `App.css` | Design system, layout, animations |
+| Component-scoped | `*.module.css` | Button, Input primitives |
 
 ---
 
-## 🔌 Data Flow
+## 🔐 Security
 
-### Form Submission Flow:
+### Current Implementation (v1.x — Local Engine)
+✅ No API keys in client code  
+✅ No network calls from the browser  
+✅ User input sanitised before rendering  
+✅ Input lengths bounded by validation + HTML `maxLength`
+
+### Future: Claude AI Integration
+When AI is introduced, it **must** follow the server-side proxy pattern:
 
 ```
-User Input → updateProjectData()
-  ↓
-projectData state updated
-  ↓
-User clicks "Generate Analysis"
-  ↓
-generateAnalysis() called
-  ↓
-Set currentStep to 4 (Loading)
-  ↓
-Fetch API (Claude)
-  ↓
-Parse JSON response
-  ↓
-setAnalysisResults(analysis)
-  ↓
-setView('results')
-  ↓
-Results component renders
+Client → POST /api/analyze → Your server → Anthropic API
 ```
 
-### Error Handling:
-
-```javascript
-try {
-  // API call
-} catch (error) {
-  console.error('Error:', error);
-  alert('Failed to generate analysis. Please try again.');
-  setIsLoading(false);
-  setCurrentStep(3); // Back to form
-}
-```
+**Never** call `https://api.anthropic.com` directly from the browser. The API key must live only in server environment variables (`process.env.ANTHROPIC_API_KEY`).
 
 ---
 
-## 🧪 Testing Strategy
-
-### Unit Tests:
-- Component rendering
-- State updates
-- Input validation
-- API response parsing
-
-### Integration Tests:
-- Multi-step form flow
-- API integration
-- Results display
-
-### E2E Tests:
-- Complete user journey
-- Error scenarios
-- Browser compatibility
-
----
-
-## 📊 Performance Considerations
-
-### Current Optimizations:
-- CSS-in-JS (no external stylesheets)
-- Inline styles (component isolation)
-- Minimal dependencies
-- Single-page architecture
-
-### Future Optimizations:
-- Code splitting (lazy loading)
-- Service worker (offline support)
-- Image optimization
-- API response caching
-- Memoization for expensive calculations
-
----
-
-## 🔐 Security Considerations
-
-### Current Implementation:
-⚠️ **Client-side API calls** (MVP only)
-- API key exposed in browser
-- Not suitable for production
-
-### Production Requirements:
-✅ **Backend API proxy**
-- Hide API keys server-side
-- Implement rate limiting
-- Add authentication
-- Validate user input
-
-### Example Backend (Node.js):
-
-```javascript
-const express = require('express');
-const app = express();
-
-app.post('/api/analyze', async (req, res) => {
-  // Validate input
-  if (!req.body.projectType) {
-    return res.status(400).json({ error: 'Invalid input' });
-  }
-
-  // Call Claude API server-side
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': process.env.ANTHROPIC_API_KEY
-    },
-    body: JSON.stringify({...})
-  });
-
-  const data = await response.json();
-  res.json(data);
-});
-```
-
----
-
-## 🚀 Scalability
-
-### Current Limitations:
-- No database (stateless)
-- No user accounts
-- No project history
-- Client-side only
-
-### Scaling Plan:
-
-**Phase 1: Backend**
-- Node.js/Express API
-- PostgreSQL database
-- User authentication
-
-**Phase 2: Features**
-- Save projects
-- Project history
-- Team collaboration
-- Advanced analytics
-
-**Phase 3: Enterprise**
-- Multi-tenancy
-- Custom models
-- API access
-- White-label options
-
----
-
-## 📈 Analytics & Monitoring
-
-### Recommended Integrations:
-
-**Analytics:**
-- Google Analytics 4
-- Mixpanel
-- Amplitude
-
-**Error Tracking:**
-- Sentry
-- LogRocket
-- Bugsnag
-
-**Performance:**
-- Lighthouse CI
-- Web Vitals
-- New Relic
-
----
-
-## 🛠️ Development Workflow
+## 🧪 Testing
 
 ```bash
-# Start development
-npm start
-
-# Run tests
-npm test
-
-# Build for production
-npm run build
-
-# Analyze bundle size
-npm run build && npx source-map-explorer build/static/js/*.js
+npm test          # Runs Jest + React Testing Library in watch mode
+npm test -- --coverage  # Generate coverage report
 ```
 
----
+### Test Files
 
-## 📝 API Documentation
-
-### generateAnalysis()
-
-**Purpose:** Sends project data to Claude API and processes response
-
-**Parameters:** None (uses state)
-
-**Returns:** void (updates state)
-
-**Side Effects:**
-- Sets loading state
-- Makes HTTP request
-- Updates analysisResults state
-- Changes view to 'results'
-
-**Error Handling:**
-- Catches API errors
-- Shows alert to user
-- Returns to previous step
+| File | Coverage |
+|---|---|
+| `src/__tests__/pricingEngine.test.js` | Unit tests for all calculation phases |
+| `src/__tests__/useFormValidation.test.js` | Boundary conditions per field |
 
 ---
 
-## 🔄 Future Enhancements
+## 📈 Analytics & Monitoring (Recommended)
 
-### Short-term:
-- [ ] Input validation
-- [ ] Better error messages
-- [ ] Loading animations
-- [ ] Mobile optimization
-- [ ] PDF export (proper library)
-
-### Medium-term:
-- [ ] User authentication
-- [ ] Project saving
-- [ ] Cost database
-- [ ] Regional pricing
-- [ ] Material suppliers integration
-
-### Long-term:
-- [ ] Machine learning models
-- [ ] CAD integration
-- [ ] BIM compatibility
-- [ ] Real-time collaboration
-- [ ] Mobile app (React Native)
+| Category | Tool |
+|---|---|
+| Error tracking | Sentry (ErrorBoundary already has TODO hook) |
+| Analytics | Google Analytics 4 / Mixpanel |
+| Performance | Lighthouse CI, Web Vitals |
 
 ---
 
-**Version:** 1.0.0  
-**Last Updated:** February 2026  
+## 🚀 Scalability Roadmap
+
+**Phase 1 — Current (v1.x)**
+- Local pricing engine, no backend, no auth
+
+**Phase 2 — Backend**
+- Node.js/Express API proxy for Claude AI
+- PostgreSQL for project history
+- User authentication (JWT/OAuth)
+
+**Phase 3 — Features**
+- Saved projects, team collaboration
+- Regional pricing database
+- Material supplier integrations
+
+**Phase 4 — Enterprise**
+- Multi-tenancy, white-label, API access
+- CAD / BIM file import
+
+---
+
+**Version:** 1.1.0
+**Last Updated:** August 2026
 **Maintained by:** SitePilot Team

@@ -5,13 +5,15 @@ import Input from '../ui/Input';
 
 const StepThree = () => {
   const { projectData, updateProjectData, prevStep, generateAnalysis } = useProject();
-  const { errors, validate } = useFormValidation();
+  const { errors, validate, validateMultiple } = useFormValidation();
 
   const handleGenerate = () => {
-    const isBudgetValid = validate('budget', projectData.budget);
-    const isTimelineValid = validate('timeline', projectData.timeline);
+    const isValid = validateMultiple([
+      { field: 'budget', value: projectData.budget },
+      { field: 'timeline', value: projectData.timeline }
+    ]);
     
-    if (isBudgetValid && isTimelineValid) {
+    if (isValid) {
       generateAnalysis();
     }
   };
@@ -60,9 +62,9 @@ const StepThree = () => {
           name="notes"
           className="textarea input-field"
           placeholder="Any specific requirements or concerns..."
+          maxLength={500}
           value={projectData.notes}
           onChange={(e) => updateProjectData('notes', e.target.value)}
-          aria-label="Additional notes for your project"
         />
       </div>
 

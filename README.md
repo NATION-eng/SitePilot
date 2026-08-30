@@ -1,20 +1,21 @@
-# SitePilot - AI Construction Intelligence Platform
+# SitePilot - Smart Construction Intelligence Platform
 
-AI-powered construction intelligence that helps construction companies plan smarter, reduce waste, and deliver projects on budget using intelligent pre-construction analysis.
+An expert-algorithm construction estimator that helps construction companies plan smarter, reduce waste, and deliver projects on budget through intelligent pre-construction analysis.
 
 ## 🚀 Features
 
-- **AI Material Estimation** - Intelligent calculation of cement, blocks, steel, sand, gravel, and roofing materials
+- **Smart Material Estimation** - Intelligent calculation of cement, blocks, steel, sand, gravel, and roofing materials based on Nigerian QS heuristics
 - **Cost Intelligence** - Comprehensive cost breakdown with budget risk analysis
-- **Risk Detection** - AI-powered warnings for over-ordering, under-budget, and timeline risks
+- **Risk Detection** - Warnings for over-ordering, under-budget, and timeline risks
 - **Professional Reports** - One-click PDF export of project analysis
 - **Multi-step Workflow** - Guided project setup flow for accurate estimates
 
 ## 🛠️ Tech Stack
 
 - **React 18** - Modern component-based UI
-- **Claude API** - AI-powered construction analysis
-- **CSS-in-JS** - Inline styles for component isolation
+- **Pricing Engine** - Deterministic construction cost formula (`src/utils/pricingEngine.js`) based on Nigerian QS standards
+- **CSS Modules + Custom Properties** - Scoped styles with design token system (`App.css`, `*.module.css`)
+- **html2pdf.js** - Client-side PDF report generation
 - **Responsive Design** - Works on desktop and mobile
 
 ## 📦 Installation
@@ -26,100 +27,128 @@ npm install
 # Start development server
 npm start
 
+# Run tests
+npm test
+
 # Build for production
 npm run build
 ```
 
 ## 🎯 Usage
 
-1. **Start New Project** - Click "Start New Project" on the homepage
+1. **Start New Project** - Click "Get Free Estimate" on the homepage
 2. **Select Project Type** - Choose between Residential, Commercial, or Industrial
 3. **Enter Details** - Provide location, building size, and number of floors
 4. **Set Budget & Timeline** - Define your financial and time constraints
-5. **Generate Analysis** - AI processes your inputs and provides comprehensive estimates
-6. **Download Report** - Export professional PDF report for clients
+5. **Generate Analysis** - The pricing engine calculates comprehensive estimates
+6. **Download Report** - Export a professional PDF report for clients
 
 ## 🏗️ Project Structure
 
 ```
 sitepilot/
 ├── public/
-│   ├── index.html
-│   └── favicon.ico
+│   └── index.html
 ├── src/
 │   ├── components/
 │   │   ├── Header.js
 │   │   ├── Hero.js
-│   │   ├── FormContainer.js
+│   │   ├── FormContainer.js       # Step switcher + ProgressBar wrapper
 │   │   ├── ProgressBar.js
+│   │   ├── SEO.js
+│   │   ├── ErrorBoundary.js
 │   │   ├── Steps/
 │   │   │   ├── StepOne.js
 │   │   │   ├── StepTwo.js
 │   │   │   ├── StepThree.js
 │   │   │   └── LoadingStep.js
-│   │   └── Results/
-│   │       ├── Results.js
-│   │       ├── MaterialEstimates.js
-│   │       ├── CostAnalysis.js
-│   │       ├── RiskAssessment.js
-│   │       └── Recommendations.js
+│   │   ├── Results/
+│   │   │   ├── Results.js
+│   │   │   ├── MaterialEstimates.js
+│   │   │   ├── CostAnalysis.js
+│   │   │   ├── RiskAssessment.js
+│   │   │   └── Recommendations.js
+│   │   └── ui/
+│   │       ├── Button.js
+│   │       ├── Button.module.css
+│   │       ├── Input.js
+│   │       └── Input.module.css
+│   ├── context/
+│   │   └── ProjectContext.js      # Global state via React Context
+│   ├── hooks/
+│   │   ├── useFormValidation.js
+│   │   ├── useLocalStorage.js
+│   │   └── useMultiStepForm.js
+│   ├── utils/
+│   │   └── pricingEngine.js       # Core cost calculation logic
 │   ├── App.js
-│   ├── index.js
-│   └── styles.js
+│   ├── App.css                    # Global design tokens + utility classes
+│   └── index.js
 ├── package.json
 └── README.md
 ```
 
-## 🔑 API Configuration
+## 💡 How the Pricing Engine Works
 
-This app uses the Anthropic Claude API. The API is called client-side with no API key required (handled by the browser context).
+`src/utils/pricingEngine.js` is the heart of SitePilot. It uses **standard Nigerian quantity surveying heuristics** and 2026 market prices to calculate:
 
-For production deployment, you should:
-1. Set up a backend server
-2. Store API keys securely
-3. Make API calls server-side
+- **Phase 1 – Structure:** Cement, blocks, steel, aggregates, roofing
+- **Phase 2 – Finishing:** Tiles, POP ceiling, paint, windows, doors
+- **Phase 3 – Services & Labour:** MEP (18% of direct costs), blended labour rate
+- **Phase 4 – Contingency:** Deterministic variance of 5–10% based on project size
 
-## 🎨 Design Philosophy
+> ⚠️ Prices are last updated per `pricing.config.json`. See that file to update rates without a code deploy.
 
-- **Industrial/Utilitarian** - Clean, data-focused design for construction professionals
-- **Trust & Clarity** - Bold typography and confident color scheme
-- **Data-Forward** - Numbers and insights take center stage
-- **Professional** - B2B-grade interface, not a consumer toy
+## 🔮 Future: Claude AI Integration
+
+A future version will replace / augment the local formula with server-side Claude AI inference. **This must always be implemented as a backend API proxy** — never expose an Anthropic API key in the client bundle.
+
+```
+User → SitePilot Frontend → /api/analyze (your server) → Anthropic Claude API
+```
+
+Example server-side handler (Node.js / Express):
+
+```javascript
+app.post('/api/analyze', async (req, res) => {
+  // 1. Validate input
+  // 2. Call Claude API using process.env.ANTHROPIC_API_KEY (server-side only)
+  // 3. Return result to client
+});
+```
+
+## 🎨 Design System
+
+- **Dark theme** — `#0A0E14` background, `#FF6B00` brand orange
+- **Typography** — IBM Plex Mono (display), Work Sans (body)
+- **All design tokens** defined as CSS custom properties in `src/App.css`
+- **Component-level styles** via CSS Modules (`*.module.css`)
 
 ## 📊 Business Model
 
 **Target Audience:**
 - Construction companies
-- Contractors
-- Project managers
+- Contractors & project managers
 - Property developers
 - Engineering firms
 
 **Value Proposition:**
-- Reduce material waste by 15-20%
+- Reduce material waste by 15–20%
 - Improve cost estimation accuracy by 30%
-- Decrease project delays due to poor planning
 - Generate professional client-ready reports instantly
 
 ## 🚢 Deployment
 
 ```bash
-# Build production bundle
 npm run build
-
-# Deploy to hosting (Vercel, Netlify, etc.)
-# The build folder is ready to be deployed
+# Deploy the /build folder to Vercel, Netlify, etc.
 ```
 
 ## 📝 License
 
-Proprietary - All rights reserved
-
-## 👨‍💻 Author
-
-Built with React and Claude AI
+Proprietary — All rights reserved
 
 ---
 
-**Version:** 1.0.0  
-**Last Updated:** February 2026
+**Version:** 1.1.0  
+**Last Updated:** August 2026

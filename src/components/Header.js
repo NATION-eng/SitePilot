@@ -10,7 +10,7 @@ const Header = () => (
             Site<span className="logo-accent">Pilot</span>
           </div>
         </div>
-        <div className="header-badge">AI CONSTRUCTION INTELLIGENCE</div>
+        <div className="header-badge">SMART CONSTRUCTION ESTIMATOR</div>
       </div>
     </div>
   </header>

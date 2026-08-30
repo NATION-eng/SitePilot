@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useProject } from '../../context/ProjectContext';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 const StepOne = () => {
   const { projectData, updateProjectData, nextStep, resetProject } = useProject();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const projectTypes = [
     { id: 'residential', icon: '🏠', name: 'Residential' },
@@ -10,10 +12,18 @@ const StepOne = () => {
     { id: 'industrial', icon: '🏭', name: 'Industrial' }
   ];
 
-  const handleKeyPress = (e, typeId) => {
+  const handleKeyDown = (e, typeId) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       updateProjectData('projectType', typeId);
+    }
+  };
+
+  const handleCancel = () => {
+    if (projectData.projectType) {
+      setShowConfirm(true);
+    } else {
+      resetProject();
     }
   };
 
@@ -33,7 +43,7 @@ const StepOne = () => {
             role="radio"
             aria-checked={projectData.projectType === type.id}
             tabIndex={0}
-            onKeyPress={(e) => handleKeyPress(e, type.id)}
+            onKeyDown={(e) => handleKeyDown(e, type.id)}
             className={`project-type-card card-hover ${projectData.projectType === type.id ? 'selected' : ''}`}
             onClick={() => updateProjectData('projectType', type.id)}
           >
@@ -46,7 +56,7 @@ const StepOne = () => {
       <div className="button-group">
         <button 
           className="btn-secondary btn-hover"
-          onClick={resetProject}
+          onClick={handleCancel}
           aria-label="Cancel and return to home"
         >
           Cancel
@@ -61,6 +71,19 @@ const StepOne = () => {
           Continue
         </button>
       </div>
+
+      <ConfirmDialog
+        isOpen={showConfirm}
+        title="Leave project setup?"
+        message="Your selected project type will be cleared."
+        confirmText="Yes, leave"
+        cancelText="Stay"
+        onConfirm={() => {
+          setShowConfirm(false);
+          resetProject();
+        }}
+        onCancel={() => setShowConfirm(false)}
+      />
     </section>
   );
 };

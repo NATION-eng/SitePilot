@@ -8,19 +8,28 @@ import SEO from './components/SEO';
 import { useProject } from './context/ProjectContext';
 
 const seoConfig = {
-  hero: { title: 'Home', description: 'AI-powered construction intelligence — estimate materials, predict costs, and detect risks before breaking ground.' },
-  form: { title: 'New Project', description: 'Enter your construction project details for an AI-powered cost analysis.' },
-  results: { title: 'Project Analysis', description: 'Your AI-generated construction cost analysis and risk assessment.' }
+  hero: {
+    title: 'Home',
+    description: 'Smart construction cost estimator — calculate materials, predict costs, and detect risks before breaking ground.'
+  },
+  form: {
+    title: 'New Estimate',
+    description: 'Enter your construction project specifications for an instant cost and material estimate.'
+  },
+  results: {
+    title: 'Estimate Results',
+    description: 'Your comprehensive construction material takeoff, cost breakdown, and risk assessment.'
+  }
 };
 
 function App() {
-  const { view, error, setError, currentStep, analysisResults } = useProject();
+  const { view, error, setError, currentStep, analysisResults, announcement } = useProject();
   const mainContentRef = useRef(null);
 
-  // Focus management when view changes
+  // Focus management when view changes (without jarring outline or scroll)
   useEffect(() => {
     if (mainContentRef.current) {
-      mainContentRef.current.focus();
+      mainContentRef.current.focus({ preventScroll: true });
     }
   }, [view, currentStep]);
 
@@ -29,13 +38,18 @@ function App() {
   return (
     <div className="app">
       <SEO title={seo.title} description={seo.description} />
+      
+      {/* Targeted screen reader announcement channel */}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </div>
+
       <Header />
       
       <main 
         ref={mainContentRef} 
         tabIndex={-1}
-        aria-live="polite"
-        aria-atomic="true"
+        className="main-content"
       >
         {view === 'hero' && (
           <section aria-labelledby="hero-title">
@@ -48,7 +62,7 @@ function App() {
             {error && (
               <div className="error-state" role="alert">
                 <div className="error-icon">❌</div>
-                <h3>Analysis Failed</h3>
+                <h3>Calculation Failed</h3>
                 <p>{error}</p>
                 <button 
                   className="btn-primary btn-hover" 

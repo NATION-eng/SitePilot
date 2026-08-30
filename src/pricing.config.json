@@ -1,0 +1,36 @@
+{
+  "_meta": {
+    "description": "SitePilot Construction Pricing Config — Nigerian market rates",
+    "currency": "NGN",
+    "lastUpdated": "2026-08-28",
+    "nextReviewDue": "2026-11-28",
+    "source": "Nigerian QS heuristics + 2026 Q3 market survey"
+  },
+  "materials": {
+    "cement": 9500,
+    "block_9inch": 500,
+    "steel_ton": 1400000,
+    "sand_ton": 6000,
+    "granite_ton": 10000,
+    "roofing_sqm": 7500,
+    "tiles_sqm": 6500,
+    "pop_sqm": 8000,
+    "paint_drum": 35000,
+    "door_internal": 60000,
+    "door_security": 150000,
+    "window_sqm": 45000
+  },
+  "labor": {
+    "base_rate_sqm": 18000
+  },
+  "multipliers": {
+    "waste": 1.10,
+    "mep_load": 0.18,
+    "contingency_base": 0.10
+  },
+  "typeMultipliers": {
+    "residential": 1.0,
+    "commercial": 1.20,
+    "industrial": 1.10
+  }
+}

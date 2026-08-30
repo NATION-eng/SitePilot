@@ -5,14 +5,16 @@ import Input from '../ui/Input';
 
 const StepTwo = () => {
   const { projectData, updateProjectData, nextStep, prevStep } = useProject();
-  const { errors, validate } = useFormValidation();
+  const { errors, validate, validateMultiple } = useFormValidation();
 
   const handleNext = () => {
-    const isLocationValid = validate('location', projectData.location);
-    const isSizeValid = validate('buildingSize', projectData.buildingSize);
-    const isFloorsValid = validate('floors', projectData.floors);
+    const isValid = validateMultiple([
+      { field: 'location', value: projectData.location },
+      { field: 'buildingSize', value: projectData.buildingSize },
+      { field: 'floors', value: projectData.floors }
+    ]);
     
-    if (isLocationValid && isSizeValid && isFloorsValid) {
+    if (isValid) {
       nextStep();
     }
   };
@@ -33,6 +35,7 @@ const StepTwo = () => {
         error={errors.location}
         placeholder="e.g., Lagos, Nigeria"
         required
+        maxLength={100}
         autoComplete="address-level2"
       />
 
