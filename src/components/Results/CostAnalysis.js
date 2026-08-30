@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import CostChart from './CostChart';
+import Icon from '../ui/Icon';
 
 const CostAnalysis = ({ costs, currencySymbol = '₦' }) => {
   const [viewMode, setViewMode] = useState('chart'); // 'chart' | 'table'
@@ -10,7 +11,7 @@ const CostAnalysis = ({ costs, currencySymbol = '₦' }) => {
     <div className="result-card">
       <div className="card-header-with-toggle">
         <h3 className="result-card-title" style={{ marginBottom: 0 }}>
-          <span className="card-icon">💰</span> Cost Breakdown
+          <Icon name="coins" size={22} color="var(--primary)" style={{ marginRight: '0.4rem' }} /> Cost Breakdown
         </h3>
         
         <div className="view-toggle" role="tablist" aria-label="Cost view mode">
@@ -21,7 +22,7 @@ const CostAnalysis = ({ costs, currencySymbol = '₦' }) => {
             className={`toggle-btn ${viewMode === 'chart' ? 'toggle-btn-active' : ''}`}
             onClick={() => setViewMode('chart')}
           >
-            📊 Chart
+            <Icon name="chart" size={14} style={{ marginRight: '0.3rem' }} /> Chart
           </button>
           <button
             type="button"
@@ -30,7 +31,7 @@ const CostAnalysis = ({ costs, currencySymbol = '₦' }) => {
             className={`toggle-btn ${viewMode === 'table' ? 'toggle-btn-active' : ''}`}
             onClick={() => setViewMode('table')}
           >
-            📋 Items
+            <Icon name="table" size={14} style={{ marginRight: '0.3rem' }} /> Items
           </button>
         </div>
       </div>

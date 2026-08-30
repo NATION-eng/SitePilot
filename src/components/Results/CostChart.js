@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Icon from '../ui/Icon';
 
 const CostChart = ({ costs, currencySymbol = '₦' }) => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -26,11 +27,11 @@ const CostChart = ({ costs, currencySymbol = '₦' }) => {
   const total = costs.total || 1;
 
   const slices = [
-    { label: 'Structure (Shell)', amount: structureCost, color: '#FF6B00', icon: '🏗️' },
-    { label: 'Finishing & Fittings', amount: finishesCost, color: '#3B82F6', icon: '🎨' },
-    { label: 'MEP Services', amount: mepCost, color: '#9333EA', icon: '⚡' },
-    { label: 'Direct Labour', amount: laborCost, color: '#00D9A3', icon: '👷' },
-    { label: 'Contingency', amount: contingencyCost, color: '#FFB800', icon: '🛡️' }
+    { label: 'Structure (Shell)', amount: structureCost, color: '#FF6B00', iconName: 'structure' },
+    { label: 'Finishing & Fittings', amount: finishesCost, color: '#3B82F6', iconName: 'finishes' },
+    { label: 'MEP Services', amount: mepCost, color: '#9333EA', iconName: 'mep' },
+    { label: 'Direct Labour', amount: laborCost, color: '#00D9A3', iconName: 'labor' },
+    { label: 'Contingency', amount: contingencyCost, color: '#FFB800', iconName: 'contingency' }
   ].filter(s => s.amount > 0);
 
   // Calculate SVG donut segments
@@ -133,7 +134,9 @@ const CostChart = ({ costs, currencySymbol = '₦' }) => {
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
             >
-              <div className="legend-indicator" style={{ backgroundColor: slice.color }} />
+              <div className="legend-indicator" style={{ backgroundColor: slice.color }}>
+                <Icon name={slice.iconName} size={12} color="#fff" />
+              </div>
               <div className="legend-text">
                 <span className="legend-label">{slice.label}</span>
                 <span className="legend-amount">

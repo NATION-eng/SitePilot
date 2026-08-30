@@ -1,5 +1,6 @@
 import React from 'react';
 import { useProject } from '../context/ProjectContext';
+import Icon from './ui/Icon';
 
 const Hero = () => {
   const { startProject } = useProject();
@@ -24,16 +25,16 @@ const Hero = () => {
           </button>
         </div>
 
-        {/* Trust signals */}
+        {/* Trust signals with custom SVG icons */}
         <div className="trust-signals slide-up" style={{ animationDelay: '0.4s' }}>
           <div className="trust-item">
-            <span aria-hidden="true">✓</span> No signup required
+            <Icon name="check" size={16} color="var(--success)" /> No signup required
           </div>
           <div className="trust-item">
-            <span aria-hidden="true">✓</span> Instant results
+            <Icon name="check" size={16} color="var(--success)" /> Instant results
           </div>
           <div className="trust-item">
-            <span aria-hidden="true">✓</span> 100% free
+            <Icon name="check" size={16} color="var(--success)" /> 100% free
           </div>
         </div>
       </div>

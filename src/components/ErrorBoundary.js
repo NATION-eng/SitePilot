@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from './ui/Icon';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -29,7 +30,9 @@ class ErrorBoundary extends React.Component {
           textAlign: 'center'
         }}>
           <div>
-            <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</h1>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <Icon name="warning" size={54} color="var(--warning, #FFB800)" />
+            </div>
             <h2>Something went wrong</h2>
             <p style={{ color: '#8B95A5', margin: '1rem 0' }}>
               We're sorry for the inconvenience. Please refresh the page.
@@ -43,7 +46,8 @@ class ErrorBoundary extends React.Component {
                 padding: '1rem 2rem',
                 borderRadius: '8px',
                 cursor: 'pointer',
-                fontSize: '1rem'
+                fontSize: '1rem',
+                fontWeight: '600'
               }}
             >
               Refresh Page

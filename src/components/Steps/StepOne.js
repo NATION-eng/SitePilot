@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useProject } from '../../context/ProjectContext';
 import ConfirmDialog from '../ui/ConfirmDialog';
+import Icon from '../ui/Icon';
 
 const StepOne = () => {
   const { projectData, updateProjectData, nextStep, resetProject } = useProject();
   const [showConfirm, setShowConfirm] = useState(false);
 
   const projectTypes = [
-    { id: 'residential', icon: '🏠', name: 'Residential' },
-    { id: 'commercial', icon: '🏢', name: 'Commercial' },
-    { id: 'industrial', icon: '🏭', name: 'Industrial' }
+    { id: 'residential', name: 'Residential' },
+    { id: 'commercial', name: 'Commercial' },
+    { id: 'industrial', name: 'Industrial' }
   ];
 
   const handleKeyDown = (e, typeId) => {
@@ -47,7 +48,13 @@ const StepOne = () => {
             className={`project-type-card card-hover ${projectData.projectType === type.id ? 'selected' : ''}`}
             onClick={() => updateProjectData('projectType', type.id)}
           >
-            <div className="project-type-icon" aria-hidden="true">{type.icon}</div>
+            <div className="project-type-icon" aria-hidden="true">
+              <Icon
+                name={type.id}
+                size={38}
+                color={projectData.projectType === type.id ? 'var(--primary)' : 'var(--text-secondary)'}
+              />
+            </div>
             <div className="project-type-name">{type.name}</div>
           </div>
         ))}

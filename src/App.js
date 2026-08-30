@@ -5,6 +5,7 @@ import Hero from './components/Hero';
 import FormContainer from './components/FormContainer';
 import Results from './components/Results/Results';
 import SEO from './components/SEO';
+import Icon from './components/ui/Icon';
 import { useProject } from './context/ProjectContext';
 
 const seoConfig = {
@@ -61,7 +62,9 @@ function App() {
           <section aria-labelledby="form-title">
             {error && (
               <div className="error-state" role="alert">
-                <div className="error-icon">❌</div>
+                <div className="error-icon" style={{ marginBottom: '1rem' }}>
+                  <Icon name="error" size={48} color="var(--danger)" />
+                </div>
                 <h3>Calculation Failed</h3>
                 <p>{error}</p>
                 <button 

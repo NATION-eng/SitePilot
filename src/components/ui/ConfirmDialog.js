@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import Icon from './Icon';
 import styles from './ConfirmDialog.module.css';
 
 const ConfirmDialog = ({
@@ -16,7 +17,6 @@ const ConfirmDialog = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Focus cancel button by default for safety
       cancelBtnRef.current?.focus();
 
       const handleKeyDown = (e) => {
@@ -47,7 +47,7 @@ const ConfirmDialog = ({
         ref={dialogRef}
       >
         <div className={styles.iconContainer}>
-          <span className={styles.icon} aria-hidden="true">⚠️</span>
+          <Icon name="warning" size={38} color="var(--warning, #FFB800)" />
         </div>
         <h3 id="dialog-title" className={styles.title}>{title}</h3>
         <p id="dialog-description" className={styles.message}>{message}</p>

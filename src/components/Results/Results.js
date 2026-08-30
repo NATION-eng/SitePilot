@@ -4,6 +4,7 @@ import CostAnalysis from './CostAnalysis';
 import RiskAssessment from './RiskAssessment';
 import Recommendations from './Recommendations';
 import ConfirmDialog from '../ui/ConfirmDialog';
+import Icon from '../ui/Icon';
 import { useProject } from '../../context/ProjectContext';
 import { downloadBOQCSV } from '../../utils/csvExport';
 import html2pdf from 'html2pdf.js';
@@ -41,7 +42,7 @@ const Results = () => {
         <div className="form-card slide-up" ref={contentRef}>
           <div className="results-top-bar">
             <div className="estimate-badge">
-              <span>📐</span>
+              <Icon name="drafting" size={15} color="var(--primary)" />
               <span>Smart Estimate — QS Algorithm</span>
             </div>
             
@@ -59,7 +60,8 @@ const Results = () => {
 
           {analysis.pricesLastUpdated && (
             <p className="prices-disclaimer">
-              ⚡ Prices last updated: <strong>{analysis.pricesLastUpdated}</strong>. Review <code>pricing.config.json</code> to update rates.
+              <Icon name="mep" size={14} color="var(--primary)" style={{ marginRight: '0.4rem' }} />
+              Prices last updated: <strong>{analysis.pricesLastUpdated}</strong>. Review <code>pricing.config.json</code> to update rates.
             </p>
           )}
 
@@ -67,7 +69,9 @@ const Results = () => {
             <div>
               {analysis.warnings.map((warning, idx) => (
                 <div key={idx} className="alert slide-up" style={{ animationDelay: `${idx * 0.1}s` }}>
-                  <div className="alert-icon">⚠️</div>
+                  <div className="alert-icon">
+                    <Icon name="warning" size={20} color="var(--warning)" />
+                  </div>
                   <div>{warning}</div>
                 </div>
               ))}
@@ -93,10 +97,10 @@ const Results = () => {
               onClick={handleDownloadCSV}
               title="Download spreadsheet compatible with Microsoft Excel and Google Sheets"
             >
-              📊 Download BOQ (.CSV)
+              <Icon name="spreadsheet" size={16} style={{ marginRight: '0.4rem' }} /> Download BOQ (.CSV)
             </button>
             <button className="btn-primary btn-hover" onClick={downloadPDF}>
-              📄 Download PDF Report
+              <Icon name="pdf" size={16} style={{ marginRight: '0.4rem' }} /> Download PDF Report
             </button>
           </div>
         </div>
