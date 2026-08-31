@@ -10,6 +10,7 @@ const ProjectContext = createContext();
 const defaultProjectData = {
   projectType: '',
   location: '',
+  regionKey: 'lagos_island',
   buildingSize: '',
   floors: '',
   specTier: 'standard',
@@ -30,6 +31,7 @@ export const ProjectProvider = ({ children }) => {
   const [currency, setCurrency] = useLocalStorage('sitepilot-currency', 'NGN');
   const [unit, setUnit] = useLocalStorage('sitepilot-unit', 'sqm');
   const [materialPrices, setMaterialPrices] = useLocalStorage('sitepilot-custom-prices', PRICING_CONFIG.materials);
+  const [savedProjects, setSavedProjects] = useLocalStorage('sitepilot-saved-portfolio', []);
   const [analysisResults, setAnalysisResults] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -186,6 +188,64 @@ export const ProjectProvider = ({ children }) => {
     recalculateEstimate(PRICING_CONFIG.materials);
   }, [setMaterialPrices, recalculateEstimate]);
 
+  // --- Multi-Project Portfolio Management ---
+  const saveCurrentProject = useCallback((customTitle = '') => {
+    if (!projectData.buildingSize) return null;
+    const currentResults = analysisResults || calculateConstructionCosts(projectData, materialPrices);
+    const projectId = `proj_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const title = customTitle.trim() || `${(projectData.projectType || 'Project').toUpperCase()} • ${projectData.location || 'Site'}`;
+
+    const newProjectRecord = {
+      id: projectId,
+      title,
+      date: new Date().toISOString(),
+      projectData: { ...projectData },
+      currency,
+      unit,
+      totalCost: currentResults?.costs?.total || 0,
+      specTier: projectData.specTier || 'standard'
+    };
+
+    setSavedProjects(prev => [newProjectRecord, ...prev.filter(p => p.id !== projectId)]);
+    announce(`Project "${title}" saved to your portfolio.`);
+    return projectId;
+  }, [projectData, analysisResults, materialPrices, currency, unit, setSavedProjects, announce]);
+
+  const loadSavedProject = useCallback((projectId) => {
+    const found = savedProjects.find(p => p.id === projectId);
+    if (!found) return false;
+
+    setProjectData(found.projectData);
+    if (found.currency) setCurrency(found.currency);
+    if (found.unit) setUnit(found.unit);
+
+    const recomputed = calculateConstructionCosts(found.projectData, materialPrices);
+    setAnalysisResults(recomputed);
+    setView('results');
+    announce(`Loaded project "${found.title}".`);
+    return true;
+  }, [savedProjects, materialPrices, setProjectData, setCurrency, setUnit, announce]);
+
+  const deleteSavedProject = useCallback((projectId) => {
+    setSavedProjects(prev => prev.filter(p => p.id !== projectId));
+    announce('Project removed from portfolio.');
+  }, [setSavedProjects, announce]);
+
+  const duplicateSavedProject = useCallback((projectId) => {
+    const found = savedProjects.find(p => p.id === projectId);
+    if (!found) return;
+
+    const duplicated = {
+      ...found,
+      id: `proj_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      title: `${found.title} (Copy)`,
+      date: new Date().toISOString()
+    };
+
+    setSavedProjects(prev => [duplicated, ...prev]);
+    announce(`Duplicated "${found.title}".`);
+  }, [savedProjects, setSavedProjects, announce]);
+
   const formatMoney = useCallback((amountInNGN) => {
     return formatCurrency(amountInNGN, currency);
   }, [currency]);
@@ -220,6 +280,11 @@ export const ProjectProvider = ({ children }) => {
     setMaterialPrices,
     resetMaterialPrices,
     recalculateEstimate,
+    savedProjects,
+    saveCurrentProject,
+    loadSavedProject,
+    deleteSavedProject,
+    duplicateSavedProject,
     analysisResults,
     isLoading,
     error,

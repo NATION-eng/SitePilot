@@ -1,19 +1,21 @@
 import React, { useState, useRef } from 'react';
 import { useProject } from '../context/ProjectContext';
 import MaterialRatesDropdown from './PriceManager/MaterialRatesDropdown';
+import ProjectHistoryDrawer from './Portfolio/ProjectHistoryDrawer';
 import Icon from './ui/Icon';
 import PRICING_CONFIG from '../pricing.config.json';
 
 const Header = () => {
-  const { currency, setCurrency, unit, setUnit } = useProject();
+  const { currency, setCurrency, unit, setUnit, savedProjects, resetProject } = useProject();
   const [isRatesDropdownOpen, setIsRatesDropdownOpen] = useState(false);
+  const [isPortfolioOpen, setIsPortfolioOpen] = useState(false);
   const ratesBtnRef = useRef(null);
 
   return (
     <header className="header fade-in">
       <div className="container">
         <div className="header-content">
-          <div className="logo btn-hover">
+          <div className="logo btn-hover" onClick={resetProject} role="button" tabIndex={0} style={{ cursor: 'pointer' }}>
             <div className="logo-icon">S</div>
             <div className="logo-text">
               Site<span className="logo-accent">Pilot</span>
@@ -21,6 +23,17 @@ const Header = () => {
           </div>
 
           <div className="header-controls">
+            {/* Project Portfolio Drawer Button */}
+            <button
+              type="button"
+              className="rates-btn btn-hover"
+              onClick={() => setIsPortfolioOpen(true)}
+              title="View and manage saved construction project estimates"
+            >
+              <Icon name="box" size={14} color="var(--primary)" style={{ marginRight: '0.35rem' }} />
+              <span>Projects ({savedProjects.length})</span>
+            </button>
+
             {/* Material Rates Dropdown Trigger */}
             <div className="rates-dropdown-wrapper" style={{ position: 'relative' }}>
               <button
@@ -83,6 +96,11 @@ const Header = () => {
           </div>
         </div>
       </div>
+
+      <ProjectHistoryDrawer
+        isOpen={isPortfolioOpen}
+        onClose={() => setIsPortfolioOpen(false)}
+      />
     </header>
   );
 };

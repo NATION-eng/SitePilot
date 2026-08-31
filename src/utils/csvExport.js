@@ -2,13 +2,27 @@ import { formatCurrency } from './currencyFormatter';
 
 /**
  * SitePilot Professional BOQ CSV Generator
- * Generates an Excel-ready, UTF-8 encoded Bill of Quantities CSV spreadsheet.
+ * Generates an Excel-ready, UTF-8 encoded Bill of Quantities CSV spreadsheet with Regional Indices, Milestones & Stress Tests.
  */
 export const generateBOQCSV = (projectData, analysis, currency = 'NGN') => {
   if (!projectData || !analysis || !analysis.costs) return '';
 
   const { projectType, location, buildingSize, floors, budget, timeline, notes } = projectData;
-  const { costs, materials, risk, warnings, recommendations, pricesLastUpdated, specifications, addons, customMaterials } = analysis;
+  const {
+    costs,
+    materials,
+    risk,
+    warnings,
+    recommendations,
+    pricesLastUpdated,
+    specifications,
+    addons,
+    customMaterials,
+    region,
+    milestones,
+    stressTests,
+    estimatedDurationMonths
+  } = analysis;
 
   const rows = [];
   const fmtCost = (amount) => formatCurrency(amount, currency);
@@ -25,10 +39,14 @@ export const generateBOQCSV = (projectData, analysis, currency = 'NGN') => {
   rows.push(['--- PROJECT PARAMETERS ---']);
   rows.push(['Project Type', (projectType || 'Residential').toUpperCase()]);
   rows.push(['Location', location || 'Not Specified']);
+  if (region) {
+    rows.push(['Regional Location Index', `${region.name} (${region.multiplier}x Logistics & Cost Factor)`]);
+    rows.push(['Geopolitical Zone', region.zone]);
+  }
   rows.push(['Gross Floor Area', `${buildingSize} sqm`]);
   rows.push(['Number of Floors', floors || '1']);
   rows.push(['Client Budget', budget ? fmtCost(budget) : 'Not Specified']);
-  rows.push(['Target Timeline', timeline ? `${timeline} Months` : 'Not Specified']);
+  rows.push(['Target / Est. Timeline', `${estimatedDurationMonths || timeline || '12'} Months`]);
   if (notes) rows.push(['Engineer Notes', notes]);
   rows.push([]);
 
@@ -83,7 +101,7 @@ export const generateBOQCSV = (projectData, analysis, currency = 'NGN') => {
     nextPhase++;
   }
 
-  // Phase 4/5: Engineering Add-ons & Site Infrastructure (if any)
+  // Engineering Add-ons & Site Infrastructure (if any)
   if (addons && addons.length > 0) {
     rows.push([`${nextPhase}.0`, `PHASE ${nextPhase}: SITE INFRASTRUCTURE & ENGINEERING ADD-ONS`, '', '']);
     addons.forEach((addon, i) => {
@@ -98,14 +116,48 @@ export const generateBOQCSV = (projectData, analysis, currency = 'NGN') => {
   rows.push([`${nextPhase}.2`, 'ESTIMATED GRAND TOTAL', '', fmtCost(costs.total)]);
   rows.push([]);
 
-  // 4. Risk & Advisory Assessment
+  // 4. Milestone Cashflow & Disbursement Valuation Schedule
+  if (milestones && milestones.length > 0) {
+    rows.push(['--- 6-STAGE MILESTONE CASHFLOW DISBURSEMENT SCHEDULE ---']);
+    rows.push(['PHASE NO', 'MILESTONE STAGE', 'BUDGET %', 'EST. DURATION', `DISBURSEMENT VALUATION (${currency})`, 'KEY TRADES']);
+    milestones.forEach((m) => {
+      rows.push([
+        `Phase ${m.phase}`,
+        m.name,
+        `${m.percent}%`,
+        `~${m.durationMonths} Mos`,
+        fmtCost(m.amount),
+        m.trades
+      ]);
+    });
+    rows.push([]);
+  }
+
+  // 5. Inflation Sensitivity Stress Test Matrix
+  if (stressTests && Object.keys(stressTests).length > 0) {
+    rows.push(['--- INFLATION SENSITIVITY & FX STRESS TEST MATRIX ---']);
+    rows.push(['SCENARIO', 'VARIANCE %', `PROJECTED TOTAL (${currency})`, 'BUDGET RESILIENCE', 'DESCRIPTION']);
+    Object.values(stressTests).forEach((s) => {
+      const surplusStr = s.budgetSurplus ? `Surplus: +${fmtCost(s.budgetDiff)}` : `Shortfall: -${fmtCost(Math.abs(s.budgetDiff))}`;
+      rows.push([
+        s.name,
+        `${s.variancePercent > 0 ? `+${s.variancePercent}%` : `${s.variancePercent}%`}`,
+        fmtCost(s.totalCost),
+        budget && parseFloat(budget) > 0 ? surplusStr : 'N/A',
+        s.description
+      ]);
+    });
+    rows.push([]);
+  }
+
+  // 6. Risk & Advisory Assessment
   rows.push(['--- RISK & ADVISORY SUMMARY ---']);
   rows.push(['Overall Risk Rating', risk?.level || 'Medium']);
   rows.push(['Budget Evaluation', risk?.budgetRisk || 'N/A']);
   rows.push(['Timeline Evaluation', risk?.timelineRisk || 'N/A']);
   rows.push([]);
 
-  // 5. Warnings & Recommendations
+  // 7. Warnings & Recommendations
   if (warnings && warnings.length > 0) {
     rows.push(['--- CRITICAL PROJECT WARNINGS ---']);
     warnings.forEach((w, i) => rows.push([`Warning ${i + 1}`, w]));
@@ -118,7 +170,7 @@ export const generateBOQCSV = (projectData, analysis, currency = 'NGN') => {
     rows.push([]);
   }
 
-  // 6. Escape and serialize to CSV format with UTF-8 BOM
+  // 8. Escape and serialize to CSV format with UTF-8 BOM
   const csvContent = rows.map(row => {
     return row.map(cell => {
       if (cell === null || cell === undefined) return '""';

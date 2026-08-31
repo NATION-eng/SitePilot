@@ -1,9 +1,10 @@
 /**
- * SitePilot Construction Pricing Engine
+ * SitePilot Enterprise Construction Pricing Engine
  *
- * Logic derived from standard Nigerian quantity surveying heuristics.
- * Covers both STRUCTURE (Shell) and FINISHING phases.
- * Fully supports engineer material specs, custom user materials, finish quality tiers, foundation soil adjustments, and engineering add-ons.
+ * Logic derived from standard Nigerian Quantity Surveying (QS) heuristics.
+ * Covers STRUCTURE (Shell), FINISHING, MEP SERVICES, TRADE LABOUR,
+ * REGIONAL STATE COST INDICES, PHASE-BY-PHASE MILESTONE DISBURSEMENTS,
+ * and INFLATION SENSITIVITY STRESS TESTING.
  */
 
 import PRICING_CONFIG from '../pricing.config.json';
@@ -19,6 +20,8 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
     buildingSize,
     floors,
     projectType,
+    regionKey = 'lagos_island',
+    location,
     budget,
     timeline,
     specTier = 'standard',
@@ -37,6 +40,35 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
   const timelineMonths = parseFloat(timeline) || 0;
 
   if (sqm === 0) return null;
+
+  // Regional Location Cost Index Multiplier (e.g. Lagos Island 1.25x, Abuja 1.20x, Ogun 0.98x)
+  let activeRegionKey = regionKey;
+  if (!PRICING_CONFIG.regionalIndices[activeRegionKey]) {
+    // Auto-detect from location string if provided
+    const locLower = (location || '').toLowerCase();
+    if (locLower.includes('lekki') || locLower.includes('island') || locLower.includes('ikoyi') || locLower.includes('epe')) {
+      activeRegionKey = 'lagos_island';
+    } else if (locLower.includes('lagos') || locLower.includes('ikeja') || locLower.includes('mainland')) {
+      activeRegionKey = 'lagos_mainland';
+    } else if (locLower.includes('abuja') || locLower.includes('fct')) {
+      activeRegionKey = 'abuja_fct';
+    } else if (locLower.includes('port harcourt') || locLower.includes('rivers')) {
+      activeRegionKey = 'rivers_ph';
+    } else if (locLower.includes('ibadan') || locLower.includes('oyo') || locLower.includes('ogun') || locLower.includes('abeokuta')) {
+      activeRegionKey = 'ogun_oyo';
+    } else if (locLower.includes('enugu') || locLower.includes('anambra') || locLower.includes('onitsha') || locLower.includes('awka')) {
+      activeRegionKey = 'enugu_anambra';
+    } else if (locLower.includes('kano') || locLower.includes('kaduna')) {
+      activeRegionKey = 'kano_kaduna';
+    } else if (locLower.includes('benin') || locLower.includes('edo') || locLower.includes('delta') || locLower.includes('warri') || locLower.includes('asaba')) {
+      activeRegionKey = 'edo_delta';
+    } else {
+      activeRegionKey = 'other_states';
+    }
+  }
+
+  const regionConfig = PRICING_CONFIG.regionalIndices[activeRegionKey] || PRICING_CONFIG.regionalIndices.other_states;
+  const regionMultiplier = regionConfig.multiplier || 1.0;
 
   // Active material rates (custom overrides or baseline config)
   const mat = { ...PRICING_CONFIG.materials, ...(customPrices || {}) };
@@ -84,17 +116,17 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
   const quantities = {};
   const costs = {};
 
-  // --- PHASE 1: STRUCTURE (Adjusted by Foundation Type) ---
+  // --- PHASE 1: STRUCTURE (Adjusted by Foundation Type & Regional Logistics) ---
 
   // Cement (Structure + Plaster + Floor Bed)
   const cementBags = Math.ceil(totalFloorArea * 4.2 * (foundationMultiplier > 1 ? 1 + (foundationMultiplier - 1) * 0.35 : 1));
   quantities.cement = `${cementBags.toLocaleString()} bags`;
-  costs.cement = Math.ceil(cementBags * (mat.cement || PRICING_CONFIG.materials.cement) * typeMultiplier);
+  costs.cement = Math.ceil(cementBags * (mat.cement || PRICING_CONFIG.materials.cement) * typeMultiplier * regionMultiplier);
 
   // Blocks
   const blockCount = Math.ceil(wallArea * 10);
   quantities.blocks = `${blockCount.toLocaleString()} pieces (9")`;
-  costs.blocks = Math.ceil(blockCount * (mat.block_9inch || PRICING_CONFIG.materials.block_9inch) * typeMultiplier);
+  costs.blocks = Math.ceil(blockCount * (mat.block_9inch || PRICING_CONFIG.materials.block_9inch) * typeMultiplier * regionMultiplier);
 
   // Steel (Structure + Foundation load)
   let steelKgPerSqm = numFloors > 1 ? 25 : 10;
@@ -103,20 +135,21 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
 
   const steelTons = (totalFloorArea * steelKgPerSqm) / 1000;
   quantities.steel = `${steelTons.toFixed(1)} tons`;
-  costs.steel = Math.ceil(steelTons * (mat.steel_ton || PRICING_CONFIG.materials.steel_ton));
+  costs.steel = Math.ceil(steelTons * (mat.steel_ton || PRICING_CONFIG.materials.steel_ton) * regionMultiplier);
 
-  // Aggregates
+  // Aggregates (Sand & Granite)
   const sandTons = Math.ceil(cementBags * 0.15);
   const graniteTons = Math.ceil(cementBags * 0.20);
   quantities.sand = `${sandTons} tons`;
   quantities.granite = `${graniteTons} tons`;
-  costs.aggregates =
+  costs.aggregates = Math.ceil((
     sandTons * (mat.sand_ton || PRICING_CONFIG.materials.sand_ton) +
-    graniteTons * (mat.granite_ton || PRICING_CONFIG.materials.granite_ton);
+    graniteTons * (mat.granite_ton || PRICING_CONFIG.materials.granite_ton)
+  ) * regionMultiplier);
 
   // Roofing
   quantities.roofing = `${roofArea} sqm (${roofingConfig.name.split(' ')[0]})`;
-  costs.roofing = Math.ceil(roofArea * activeRoofingRate);
+  costs.roofing = Math.ceil(roofArea * activeRoofingRate * regionMultiplier);
 
   // --- PHASE 2: FINISHING (Adjusted by Spec Tier & Specific Options) ---
 
@@ -153,7 +186,7 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
 
   const directBaseCost = Object.values(costs).reduce((a, b) => a + b, 0);
   const mepCost = Math.ceil(directBaseCost * PRICING_CONFIG.multipliers.mep_load);
-  const laborCost = Math.ceil(directBaseCost * 0.25);
+  const laborCost = Math.ceil(directBaseCost * 0.25 * regionMultiplier);
 
   // --- PHASE 4: ENGINEERING ADD-ONS ---
   const addonsSummary = [];
@@ -212,7 +245,48 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
 
   const grandTotal = subTotal + contingencyCost;
 
-  // --- RISK ASSESSMENT ---
+  // --- 7. PHASE-BY-PHASE MILESTONE DISBURSEMENT CASHFLOW ---
+  const baseEstimatedMonths = Math.max(
+    3,
+    Math.ceil((totalFloorArea / 100) * 3 * (typeMultiplier > 1 ? 1.2 : 1) * (specTier === 'luxury' ? 1.25 : 1.0))
+  );
+  const activeTimelineMonths = timelineMonths > 0 ? timelineMonths : baseEstimatedMonths;
+
+  const milestoneDisbursements = PRICING_CONFIG.milestoneSchedule.map((milestone) => {
+    const milestoneAmount = Math.round(grandTotal * milestone.percent);
+    const estimatedDurationMonths = Math.max(0.5, +(activeTimelineMonths * milestone.durationWeight).toFixed(1));
+
+    return {
+      id: milestone.id,
+      phase: milestone.phase,
+      name: milestone.name,
+      percent: Math.round(milestone.percent * 100),
+      amount: milestoneAmount,
+      durationMonths: estimatedDurationMonths,
+      trades: milestone.trades,
+      icon: milestone.icon
+    };
+  });
+
+  // --- 8. INFLATION SENSITIVITY STRESS TEST MATRIX ---
+  const stressTests = {};
+  Object.entries(PRICING_CONFIG.stressTestScenarios).forEach(([scenarioKey, scenario]) => {
+    const varianceMultiplier = 1 + scenario.materialVariance;
+    const adjustedGrandTotal = Math.round(grandTotal * (1 + scenario.materialVariance * 0.75)); // Materials compose ~75% of variable costs
+    const scenarioBudgetDiff = budgetAmount > 0 ? budgetAmount - adjustedGrandTotal : 0;
+
+    stressTests[scenarioKey] = {
+      name: scenario.name,
+      varianceMultiplier,
+      variancePercent: Math.round(scenario.materialVariance * 100),
+      totalCost: adjustedGrandTotal,
+      budgetDiff: scenarioBudgetDiff,
+      budgetSurplus: scenarioBudgetDiff >= 0,
+      description: scenario.description
+    };
+  });
+
+  // --- 9. RISK ASSESSMENT ---
 
   // Budget calculations
   const budgetDiff = budgetAmount > 0 ? budgetAmount - grandTotal : 0;
@@ -221,31 +295,28 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
 
   if (budgetAmount > 0) {
     if (budgetDiff > 0) {
-      budgetRisk = `Your budget is ₦${budgetDiff.toLocaleString()} above the estimated cost (${budgetDiffPercent}% surplus). Good buffer for unexpected project expenses.`;
+      budgetRisk = `Your budget is ₦${budgetDiff.toLocaleString()} above the estimated cost (${budgetDiffPercent}% surplus). Good buffer for unforeseen price shifts.`;
     } else if (budgetDiff < 0) {
-      budgetRisk = `Your budget is ₦${Math.abs(budgetDiff).toLocaleString()} below the estimated cost (${Math.abs(budgetDiffPercent)}% shortfall). Consider phasing interior finishes or selecting standard grade specifications.`;
+      budgetRisk = `Your budget is ₦${Math.abs(budgetDiff).toLocaleString()} below the estimated cost (${Math.abs(budgetDiffPercent)}% shortfall). Consider phasing finishes or selecting standard grade options.`;
     } else {
       budgetRisk = `Your budget matches the estimated cost exactly. Consider adding a 10–15% contingency buffer.`;
     }
   } else {
-    budgetRisk = `No budget specified. Selected ${tierConfig.name} finishes will be key cost drivers.`;
+    budgetRisk = `No budget specified. Finishes and structural works in ${regionConfig.name} will be primary cost drivers.`;
   }
 
   // Timeline risk
   let timelineRisk;
-  const recommendedMonths = Math.ceil(
-    (totalFloorArea / 100) * 3 * (typeMultiplier > 1 ? 1.2 : 1) * (specTier === 'luxury' ? 1.25 : 1.0)
-  );
   if (timelineMonths > 0) {
-    if (timelineMonths < recommendedMonths * 0.7) {
-      timelineRisk = `${timelineMonths} months is aggressive for ${totalFloorArea} sqm (${typeName}, ${tierConfig.name}). Recommended: ${recommendedMonths}+ months.`;
-    } else if (timelineMonths > recommendedMonths * 1.5) {
-      timelineRisk = `${timelineMonths} months is generous for ${totalFloorArea} sqm. This allows for thorough quality control.`;
+    if (timelineMonths < baseEstimatedMonths * 0.7) {
+      timelineRisk = `${timelineMonths} months is aggressive for ${totalFloorArea} sqm (${typeName}, ${tierConfig.name} in ${regionConfig.name}). Recommended: ${baseEstimatedMonths}+ months.`;
+    } else if (timelineMonths > baseEstimatedMonths * 1.5) {
+      timelineRisk = `${timelineMonths} months is generous for ${totalFloorArea} sqm. This allows for rigorous quality control.`;
     } else {
-      timelineRisk = `${timelineMonths} months is realistic for ${totalFloorArea} sqm. Recommended range: ${Math.ceil(recommendedMonths * 0.8)}–${Math.ceil(recommendedMonths * 1.3)} months.`;
+      timelineRisk = `${timelineMonths} months is realistic for ${totalFloorArea} sqm. Recommended range: ${Math.ceil(baseEstimatedMonths * 0.8)}–${Math.ceil(baseEstimatedMonths * 1.3)} months.`;
     }
   } else {
-    timelineRisk = `No timeline specified. Standard allowance for ${tierConfig.name} build is ${recommendedMonths} months.`;
+    timelineRisk = `No timeline specified. Standard allowance for ${tierConfig.name} build in ${regionConfig.name} is ${baseEstimatedMonths} months.`;
   }
 
   // Overall risk level
@@ -261,6 +332,7 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
   // --- WARNINGS & RECOMMENDATIONS ---
 
   const warnings = [
+    `Location cost index calibrated for ${regionConfig.name} (${regionConfig.multiplier}x baseline).`,
     `Pricing calibrated for ${tierConfig.name} specification grade.`,
     `Foundation estimated for ${foundationConfig.name}. Consult geotechnical soil test before casting.`,
     'MEP costs are estimates based on standard loads; specific engineering designs required for tender.',
@@ -274,9 +346,10 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
   }
 
   const recommendations = [
-    `Lock material orders early for ${flooringConfig.name} and ${roofingConfig.name} to avoid shipment delays.`,
+    `Lock material orders early for ${flooringConfig.name} and ${roofingConfig.name} to avoid market inflation surges.`,
+    'Follow the 6-stage milestone cashflow disbursement schedule to ensure contractor compliance against QS valuations.',
     'Supervise rebar cutting and bending closely on site to keep steel waste below 5%.',
-    'Ensure stage-by-stage quantity surveying verification before contractor disbursements.',
+    'Ensure stage-by-stage quantity surveying verification before contractor progress payments.',
   ];
 
   if (totalAddonsCost > 0) {
@@ -291,6 +364,14 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
 
   return {
     pricesLastUpdated: PRICING_CONFIG._meta.lastUpdated,
+    region: {
+      key: activeRegionKey,
+      name: regionConfig.name,
+      state: regionConfig.state,
+      zone: regionConfig.zone,
+      multiplier: regionMultiplier,
+      description: regionConfig.description
+    },
     specifications: {
       specTier,
       specTierName: tierConfig.name,
@@ -304,6 +385,9 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
     customMaterials: customMaterialsSummary,
     totalCustomMaterialsCost,
     materials: quantities,
+    milestones: milestoneDisbursements,
+    stressTests,
+    estimatedDurationMonths: activeTimelineMonths,
     costs: {
       cement: costs.cement,
       blocks: costs.blocks,

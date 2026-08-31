@@ -10,7 +10,7 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
 
   const currencyInfo = getCurrencyInfo(currency);
   const unitInfo = getUnitInfo(unit);
-  const { projectType, location, buildingSize, floors, budget, timeline, notes } = projectData;
+  const { projectType, location, buildingSize, floors, budget, timeline, notes = '' } = projectData;
   const {
     costs,
     materials,
@@ -22,7 +22,10 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
     addons,
     totalAddonsCost,
     customMaterials,
-    totalCustomMaterialsCost
+    totalCustomMaterialsCost,
+    region,
+    milestones,
+    estimatedDurationMonths
   } = analysis;
 
   const dateStr = new Date().toLocaleDateString('en-GB', {
@@ -40,46 +43,45 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     color: #0f172a;
     background: #ffffff;
-    padding: 24px;
-    width: 760px;
+    padding: 32px 36px;
+    width: 794px;
     box-sizing: border-box;
     line-height: 1.45;
-    font-size: 12px;
   `;
-
-  // Aggregate cost centres
-  const structureCost =
-    (costs.cement || 0) + (costs.blocks || 0) + (costs.steel || 0) + (costs.aggregates || 0) + (costs.roofing || 0);
-  const finishesCost =
-    (costs.tiles || 0) + (costs.pop || 0) + (costs.paint || 0) + (costs.windows || 0) + (costs.doors || 0);
 
   container.innerHTML = `
     <style>
+      .sitepilot-pdf-root * {
+        box-sizing: border-box;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
       .pdf-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        border-bottom: 3px solid #FF6B00;
-        padding-bottom: 12px;
-        margin-bottom: 16px;
+        align-items: flex-start;
+        border-bottom: 2px solid #0f172a;
+        padding-bottom: 14px;
+        margin-bottom: 18px;
       }
       .pdf-logo-title {
-        font-size: 22px;
+        font-size: 24px;
         font-weight: 800;
         color: #0f172a;
         letter-spacing: -0.5px;
       }
-      .pdf-logo-title span { color: #FF6B00; }
+      .pdf-logo-title span {
+        color: #ea580c;
+      }
       .pdf-doc-badge {
-        background: #fff7ed;
-        color: #c2410c;
-        border: 1px solid #fed7aa;
-        padding: 4px 10px;
-        border-radius: 12px;
         font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        background: #ea580c;
+        color: #ffffff;
+        padding: 3px 8px;
+        border-radius: 3px;
+        display: inline-block;
       }
       .pdf-meta-grid {
         display: grid;
@@ -87,49 +89,47 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
         gap: 10px;
         background: #f8fafc;
         border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 12px;
-        margin-bottom: 14px;
-      }
-      .pdf-meta-item { display: flex; flex-direction: column; }
-      .pdf-meta-label { font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 600; }
-      .pdf-meta-value { font-size: 12px; color: #0f172a; font-weight: 700; margin-top: 2px; }
-      
-      .pdf-specs-pill-bar {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-bottom: 14px;
-      }
-      .pdf-spec-pill {
-        background: #f1f5f9;
-        border: 1px solid #cbd5e1;
-        padding: 4px 8px;
         border-radius: 6px;
-        font-size: 10.5px;
-        color: #334155;
-        font-weight: 600;
+        padding: 12px 14px;
+        margin-bottom: 20px;
       }
-      .pdf-spec-pill strong { color: #FF6B00; }
-
+      .pdf-meta-item {
+        display: flex;
+        flex-direction: column;
+      }
+      .pdf-meta-label {
+        font-size: 9px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #64748b;
+        letter-spacing: 0.5px;
+      }
+      .pdf-meta-value {
+        font-size: 12px;
+        font-weight: 600;
+        color: #0f172a;
+        margin-top: 2px;
+      }
       .pdf-section {
-        margin-bottom: 18px;
+        margin-bottom: 20px;
         page-break-inside: avoid;
+        break-inside: avoid;
       }
       .pdf-section-title {
-        font-size: 14px;
-        font-weight: 700;
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
         color: #0f172a;
-        border-bottom: 1px solid #e2e8f0;
-        padding-bottom: 6px;
+        border-bottom: 1px solid #cbd5e1;
+        padding-bottom: 5px;
         margin-bottom: 10px;
         display: flex;
         justify-content: space-between;
-        align-items: center;
       }
       .pdf-table {
         width: 100%;
         border-collapse: collapse;
+        margin-bottom: 14px;
         font-size: 11px;
       }
       .pdf-table th {
@@ -137,56 +137,65 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
         color: #334155;
         font-weight: 700;
         text-align: left;
-        padding: 6px 8px;
+        padding: 6px 10px;
+        border-top: 1px solid #cbd5e1;
         border-bottom: 1px solid #cbd5e1;
+        font-size: 10px;
+        text-transform: uppercase;
       }
       .pdf-table td {
-        padding: 6px 8px;
-        border-bottom: 1px solid #f1f5f9;
+        padding: 6px 10px;
+        border-bottom: 1px solid #e2e8f0;
         color: #1e293b;
       }
-      .pdf-table tr:nth-child(even) td { background: #fafafa; }
-      .pdf-table .text-right { text-align: right; }
-      .pdf-table .font-bold { font-weight: 700; }
-
+      .text-right {
+        text-align: right;
+      }
+      .font-bold {
+        font-weight: 700;
+      }
       .pdf-total-card {
         background: #fff7ed;
-        border: 2px solid #FF6B00;
-        border-radius: 8px;
+        border: 2px solid #ea580c;
+        border-radius: 6px;
         padding: 12px 16px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-top: 14px;
-        page-break-inside: avoid;
+        margin-top: 10px;
       }
-      .pdf-total-label { font-size: 13px; font-weight: 700; color: #9a3412; }
-      .pdf-total-val { font-size: 20px; font-weight: 800; color: #c2410c; }
-
+      .pdf-total-label {
+        font-size: 13px;
+        font-weight: 800;
+        color: #9a3412;
+      }
+      .pdf-total-val {
+        font-size: 20px;
+        font-weight: 800;
+        color: #ea580c;
+      }
       .pdf-card {
         background: #f8fafc;
         border: 1px solid #e2e8f0;
-        border-radius: 8px;
+        border-radius: 6px;
         padding: 10px 12px;
-        margin-bottom: 10px;
-        page-break-inside: avoid;
+        margin-bottom: 8px;
       }
       .pdf-alert-box {
-        background: #fefce8;
-        border: 1px solid #fef08a;
-        color: #854d0e;
-        padding: 8px 10px;
-        border-radius: 6px;
+        background: #fef2f2;
+        border-left: 3px solid #dc2626;
+        padding: 6px 10px;
         font-size: 10.5px;
-        margin-bottom: 6px;
+        color: #991b1b;
+        margin-bottom: 4px;
       }
       .pdf-footer {
-        border-top: 1px solid #e2e8f0;
+        margin-top: 24px;
         padding-top: 10px;
-        font-size: 9.5px;
-        color: #94a3b8;
+        border-top: 1px solid #e2e8f0;
+        font-size: 9px;
+        color: #64748b;
         text-align: center;
-        margin-top: 20px;
       }
     </style>
 
@@ -209,8 +218,8 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
         <span class="pdf-meta-value">${(projectType || 'Residential').toUpperCase()}</span>
       </div>
       <div class="pdf-meta-item">
-        <span class="pdf-meta-label">Location</span>
-        <span class="pdf-meta-value">${location || 'N/A'}</span>
+        <span class="pdf-meta-label">Location & Region</span>
+        <span class="pdf-meta-value">${location || 'N/A'} ${region ? `(${region.multiplier}x)` : ''}</span>
       </div>
       <div class="pdf-meta-item">
         <span class="pdf-meta-label">Building Area</span>
@@ -225,48 +234,39 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
         <span class="pdf-meta-value">${budget ? fmt(budget) : 'Not Specified'}</span>
       </div>
       <div class="pdf-meta-item">
-        <span class="pdf-meta-label">Target Timeline</span>
-        <span class="pdf-meta-value">${timeline ? `${timeline} Months` : 'Not Specified'}</span>
+        <span class="pdf-meta-label">Target / Est. Timeline</span>
+        <span class="pdf-meta-value">${estimatedDurationMonths || timeline || '12'} Months</span>
       </div>
       <div class="pdf-meta-item">
         <span class="pdf-meta-label">Currency / Pricing Basis</span>
         <span class="pdf-meta-value">${currency} (Rates: ${pricesLastUpdated || '2026-08'})</span>
       </div>
+      ${notes ? `
+        <div class="pdf-meta-item" style="grid-column: span 3;">
+          <span class="pdf-meta-label">Engineer Notes</span>
+          <span class="pdf-meta-value" style="font-size: 11px; font-weight: 500;">${notes}</span>
+        </div>
+      ` : ''}
     </div>
 
-    <!-- Engineering Specs Summary Pills -->
-    ${specifications ? `
-      <div class="pdf-specs-pill-bar">
-        <div class="pdf-spec-pill">Substructure: <strong>${specifications.foundationName}</strong></div>
-        <div class="pdf-spec-pill">Flooring: <strong>${specifications.flooringName}</strong></div>
-        <div class="pdf-spec-pill">Roofing: <strong>${specifications.roofingName}</strong></div>
-        <div class="pdf-spec-pill">Ceiling: <strong>${specifications.ceilingName}</strong></div>
-      </div>
-    ` : ''}
-
-    ${notes ? `
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; margin-bottom: 14px; font-size: 11px;">
-        <strong style="color: #475569;">Client Project Notes:</strong> <span style="color: #334155;">${notes}</span>
-      </div>
-    ` : ''}
-
-    <!-- Section 1: Materials Takeoff & Cost Breakdown -->
+    <!-- Section 1: Detailed Cost Breakdown -->
     <div class="pdf-section">
       <div class="pdf-section-title">
-        <span>1. Cost Breakdown & Material Quantities</span>
-        <span style="font-size: 11px; color: #64748b; font-weight: normal;">All values in ${currency}</span>
+        <span>1. Bill of Quantities (BOQ) & Cost Schedule</span>
+        <span>All figures in ${currency}</span>
       </div>
+
       <table class="pdf-table">
         <thead>
           <tr>
-            <th style="width: 40%;">Trade / Work Section</th>
-            <th style="width: 35%;">Takeoff Quantity</th>
+            <th style="width: 45%;">Work Section / Trade</th>
+            <th style="width: 30%;">Takeoff / Quantity</th>
             <th style="width: 25%;" class="text-right">Estimated Cost (${currencyInfo.symbol})</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="font-bold" colspan="3" style="background: #f8fafc; color: #475569;">PHASE 1: STRUCTURE (SHELL) — Total: ${fmt(structureCost)}</td>
+            <td class="font-bold" colspan="3" style="background: #f8fafc; color: #475569;">PHASE 1: SUBSTRUCTURE & SUPERSTRUCTURE</td>
           </tr>
           <tr>
             <td>Cement (Foundation, Plaster, Screed)</td>
@@ -279,7 +279,7 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
             <td class="text-right font-bold">${fmt(costs.blocks)}</td>
           </tr>
           <tr>
-            <td>Reinforcement Steel (TMT)</td>
+            <td>Reinforcement Steel (TMT Rebar)</td>
             <td>${materials.steel || 'N/A'}</td>
             <td class="text-right font-bold">${fmt(costs.steel)}</td>
           </tr>
@@ -295,7 +295,7 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
           </tr>
 
           <tr>
-            <td class="font-bold" colspan="3" style="background: #f8fafc; color: #475569;">PHASE 2: FINISHING & FITTINGS — Total: ${fmt(finishesCost)}</td>
+            <td class="font-bold" colspan="3" style="background: #f8fafc; color: #475569;">PHASE 2: FINISHING & ARCHITECTURAL FITTINGS</td>
           </tr>
           <tr>
             <td>Floor & Wall Tiles</td>
@@ -384,10 +384,42 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
       </div>
     </div>
 
-    <!-- Section 2: Risk Assessment & Advisory -->
+    <!-- Section 2: Milestone Cashflow & Disbursement Schedule -->
+    ${milestones && milestones.length > 0 ? `
+      <div class="pdf-section">
+        <div class="pdf-section-title">
+          <span>2. Milestone Cashflow & Valuation Schedule</span>
+          <span>6 Construction Phases</span>
+        </div>
+        <table class="pdf-table">
+          <thead>
+            <tr>
+              <th style="width: 25%;">Milestone Phase</th>
+              <th style="width: 15%;">Allocation</th>
+              <th style="width: 15%;">Est. Duration</th>
+              <th style="width: 20%;" class="text-right">Valuation Amount</th>
+              <th style="width: 25%;">Key Trade Activities</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${milestones.map(m => `
+              <tr>
+                <td class="font-bold">Phase ${m.phase}: ${m.name}</td>
+                <td>${m.percent}%</td>
+                <td>~${m.durationMonths} Mos</td>
+                <td class="text-right font-bold">${fmt(m.amount)}</td>
+                <td style="font-size: 9.5px; color: #475569;">${m.trades}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    ` : ''}
+
+    <!-- Section 3: Risk Assessment & Advisory -->
     <div class="pdf-section">
       <div class="pdf-section-title">
-        <span>2. Risk Assessment & Advisory Summary</span>
+        <span>3. Risk Assessment & Advisory Summary</span>
         <span style="font-size: 11px; font-weight: 700; color: ${risk.level === 'High' ? '#dc2626' : risk.level === 'Medium' ? '#d97706' : '#16a34a'};">
           ${risk.level || 'Medium'} Risk Profile
         </span>
@@ -410,11 +442,11 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
       ` : ''}
     </div>
 
-    <!-- Section 3: Expert QS Recommendations -->
+    <!-- Section 4: Quantity Surveyor Recommendations -->
     ${recommendations && recommendations.length > 0 ? `
       <div class="pdf-section">
         <div class="pdf-section-title">
-          <span>3. Quantity Surveyor Recommendations</span>
+          <span>4. Quantity Surveyor Recommendations</span>
         </div>
         <div class="pdf-card">
           <ul style="margin: 0; padding-left: 16px; color: #334155; font-size: 11px;">
@@ -430,18 +462,25 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
     </div>
   `;
 
-  // Render using html2pdf with high resolution
+  // PDF Generation Options
   const opt = {
-    margin: [0.35, 0.4, 0.35, 0.4],
-    filename: `SitePilot_Report_${projectType || 'Project'}_${currency}_${new Date().toISOString().split('T')[0]}.pdf`,
+    margin: [10, 10, 10, 10],
+    filename: `SitePilot_Estimate_${(projectType || 'estimate').toLowerCase()}_${new Date().toISOString().split('T')[0]}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
-      scale: 2.2,
+      scale: 2,
       useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false
+      letterRendering: true,
+      backgroundColor: '#ffffff'
     },
-    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    jsPDF: {
+      unit: 'mm',
+      format: 'a4',
+      orientation: 'portrait'
+    },
+    pagebreak: {
+      mode: ['avoid-all', 'css', 'legacy']
+    }
   };
 
   html2pdf().set(opt).from(container).save();

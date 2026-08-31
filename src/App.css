@@ -1065,6 +1065,212 @@ main:focus:not(:focus-visible) {
   color: #ef4444;
 }
 
+/* --- Milestone Cashflow Timeline Grid --- */
+.milestones-timeline-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .milestones-timeline-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .milestones-timeline-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.milestone-item-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.milestone-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.milestone-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: rgba(255, 107, 0, 0.12);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.milestone-percent-pill {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.milestone-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.15rem;
+}
+
+.milestone-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.milestone-trades {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+  margin: 0;
+  flex: 1;
+}
+
+.milestone-progress-track {
+  height: 5px;
+  background: var(--bg-card);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 0.35rem;
+}
+
+.milestone-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light, #FFA756) 100%);
+  border-radius: 3px;
+}
+
+.milestone-item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.25rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.milestone-duration {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.milestone-cost {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--primary);
+  font-family: var(--font-display, monospace);
+}
+
+/* --- Stress Test Matrix --- */
+.stress-test-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .stress-test-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stress-pill-btn {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.5rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+  background: var(--bg-elevated);
+}
+
+.stress-pill-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: var(--font-display, monospace);
+}
+
+.stress-pill-name {
+  font-size: 0.72rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  text-align: center;
+}
+
+.stress-test-active-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.stress-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.stress-card-tag {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.stress-card-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0 0;
+}
+
+.stress-card-cost {
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-family: var(--font-display, monospace);
+}
+
+.stress-card-metrics {
+  display: flex;
+  gap: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.stress-metric {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+}
+
+.stress-metric-label {
+  color: var(--text-secondary);
+}
+
 /* --- Responsive Breakpoints --- */
 @media (max-width: 768px) {
   .responsive-grid-3 { grid-template-columns: 1fr; }
