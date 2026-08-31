@@ -8,7 +8,13 @@ describe('SitePilot Construction Pricing Engine', () => {
     projectType: 'residential',
     budget: '50000000',
     timeline: '12',
-    notes: 'Test project'
+    notes: 'Test project',
+    specTier: 'standard',
+    flooringType: 'ceramic',
+    roofingType: 'aluminium',
+    ceilingType: 'pop',
+    foundationType: 'strip',
+    selectedAddons: []
   };
 
   test('returns null if buildingSize is missing or 0', () => {
@@ -63,8 +69,35 @@ describe('SitePilot Construction Pricing Engine', () => {
       costs.paint +
       costs.windows +
       costs.doors;
-    const expectedSubtotal = directSum + costs.m_e_p + costs.labor;
+    const expectedSubtotal = directSum + costs.m_e_p + costs.labor + (costs.addons || 0);
     expect(costs.total).toBe(expectedSubtotal + costs.contingency);
+  });
+
+  test('applies specification tier multiplier for Luxury vs Standard', () => {
+    const standardResult = calculateConstructionCosts({ ...sampleResidential, specTier: 'standard' });
+    const luxuryResult = calculateConstructionCosts({ ...sampleResidential, specTier: 'luxury' });
+
+    expect(luxuryResult.costs.windows).toBeGreaterThan(standardResult.costs.windows);
+    expect(luxuryResult.costs.doors).toBeGreaterThan(standardResult.costs.doors);
+    expect(luxuryResult.costs.total).toBeGreaterThan(standardResult.costs.total);
+  });
+
+  test('adjusts cost for Raft foundation soil condition vs Strip footing', () => {
+    const stripResult = calculateConstructionCosts({ ...sampleResidential, foundationType: 'strip' });
+    const raftResult = calculateConstructionCosts({ ...sampleResidential, foundationType: 'raft' });
+
+    expect(raftResult.costs.cement).toBeGreaterThan(stripResult.costs.cement);
+    expect(raftResult.costs.steel).toBeGreaterThan(stripResult.costs.steel);
+    expect(raftResult.costs.total).toBeGreaterThan(stripResult.costs.total);
+  });
+
+  test('incorporates engineering infrastructure add-ons (solar, borehole)', () => {
+    const withoutAddons = calculateConstructionCosts({ ...sampleResidential, selectedAddons: [] });
+    const withAddons = calculateConstructionCosts({ ...sampleResidential, selectedAddons: ['solar', 'borehole'] });
+
+    expect(withAddons.addons.length).toBe(2);
+    expect(withAddons.totalAddonsCost).toBe(PRICING_CONFIG.engineeringAddons.solar.cost + PRICING_CONFIG.engineeringAddons.borehole.cost);
+    expect(withAddons.costs.total).toBeGreaterThan(withoutAddons.costs.total);
   });
 
   test('applies commercial type multiplier (1.20x) properly', () => {

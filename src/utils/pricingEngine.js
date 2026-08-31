@@ -3,8 +3,7 @@
  *
  * Logic derived from standard Nigerian quantity surveying heuristics.
  * Covers both STRUCTURE (Shell) and FINISHING phases.
- * Uses projectType, budget, and timeline for accurate risk assessment.
- * Supports dynamic real-time market price overrides.
+ * Fully supports engineer material specs, finish quality tiers, foundation soil adjustments, and engineering add-ons.
  */
 
 import PRICING_CONFIG from '../pricing.config.json';
@@ -16,7 +15,19 @@ import PRICING_CONFIG from '../pricing.config.json';
  * @returns {Object|null} Analysis results or null if buildingSize is 0.
  */
 export const calculateConstructionCosts = (projectData, customPrices = null) => {
-  const { buildingSize, floors, projectType, budget, timeline } = projectData;
+  const {
+    buildingSize,
+    floors,
+    projectType,
+    budget,
+    timeline,
+    specTier = 'standard',
+    flooringType = 'ceramic',
+    roofingType = 'aluminium',
+    ceilingType = 'pop',
+    foundationType = 'strip',
+    selectedAddons = []
+  } = projectData;
 
   // 1. Validate and Parse Inputs
   const sqm = parseFloat(buildingSize) || 0;
@@ -29,7 +40,33 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
   // Active material rates (custom overrides or baseline config)
   const mat = { ...PRICING_CONFIG.materials, ...(customPrices || {}) };
 
-  // 2. Get type multiplier
+  // Spec Tier Multiplier (Standard: 1.0, Premium: 1.35, Luxury: 1.85)
+  const tierConfig = PRICING_CONFIG.specTiers[specTier] || PRICING_CONFIG.specTiers.standard;
+  const specMultiplier = tierConfig.multiplier || 1.0;
+
+  // Foundation Substructure Multiplier (Strip: 1.0, Raft: 1.40, Piled: 2.10)
+  const foundationConfig =
+    PRICING_CONFIG.materialOptions.foundation[foundationType] ||
+    PRICING_CONFIG.materialOptions.foundation.strip;
+  const foundationMultiplier = foundationConfig.multiplier || 1.0;
+
+  // Specific Material Unit Rates
+  const flooringConfig =
+    PRICING_CONFIG.materialOptions.flooring[flooringType] ||
+    PRICING_CONFIG.materialOptions.flooring.ceramic;
+  const activeFlooringRate = mat.tiles_sqm ? mat.tiles_sqm : flooringConfig.rate;
+
+  const roofingConfig =
+    PRICING_CONFIG.materialOptions.roofing[roofingType] ||
+    PRICING_CONFIG.materialOptions.roofing.aluminium;
+  const activeRoofingRate = mat.roofing_sqm ? mat.roofing_sqm : roofingConfig.rate;
+
+  const ceilingConfig =
+    PRICING_CONFIG.materialOptions.ceiling[ceilingType] ||
+    PRICING_CONFIG.materialOptions.ceiling.pop;
+  const activeCeilingRate = mat.pop_sqm ? mat.pop_sqm : ceilingConfig.rate;
+
+  // Type Multiplier (Residential: 1.0, Commercial: 1.20, Industrial: 1.10)
   const typeMultiplier = PRICING_CONFIG.typeMultipliers[projectType] || 1.0;
   const typeName = projectType
     ? projectType.charAt(0).toUpperCase() + projectType.slice(1)
@@ -43,10 +80,10 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
   const quantities = {};
   const costs = {};
 
-  // --- PHASE 1: STRUCTURE ---
+  // --- PHASE 1: STRUCTURE (Adjusted by Foundation Type) ---
 
   // Cement (Structure + Plaster + Floor Bed)
-  const cementBags = Math.ceil(totalFloorArea * 4.2);
+  const cementBags = Math.ceil(totalFloorArea * 4.2 * (foundationMultiplier > 1 ? 1 + (foundationMultiplier - 1) * 0.35 : 1));
   quantities.cement = `${cementBags.toLocaleString()} bags`;
   costs.cement = Math.ceil(cementBags * (mat.cement || PRICING_CONFIG.materials.cement) * typeMultiplier);
 
@@ -55,9 +92,11 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
   quantities.blocks = `${blockCount.toLocaleString()} pieces (9")`;
   costs.blocks = Math.ceil(blockCount * (mat.block_9inch || PRICING_CONFIG.materials.block_9inch) * typeMultiplier);
 
-  // Steel
+  // Steel (Structure + Foundation load)
   let steelKgPerSqm = numFloors > 1 ? 25 : 10;
-  if (projectType === 'industrial') steelKgPerSqm *= 1.15; // Heavier structure
+  if (projectType === 'industrial') steelKgPerSqm *= 1.15;
+  if (foundationMultiplier > 1) steelKgPerSqm *= (1 + (foundationMultiplier - 1) * 0.45); // Heavy rebar in raft/pile
+
   const steelTons = (totalFloorArea * steelKgPerSqm) / 1000;
   quantities.steel = `${steelTons.toFixed(1)} tons`;
   costs.steel = Math.ceil(steelTons * (mat.steel_ton || PRICING_CONFIG.materials.steel_ton));
@@ -72,48 +111,69 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
     graniteTons * (mat.granite_ton || PRICING_CONFIG.materials.granite_ton);
 
   // Roofing
-  quantities.roofing = `${roofArea} sqm`;
-  costs.roofing = roofArea * (mat.roofing_sqm || PRICING_CONFIG.materials.roofing_sqm);
+  quantities.roofing = `${roofArea} sqm (${roofingConfig.name.split(' ')[0]})`;
+  costs.roofing = Math.ceil(roofArea * activeRoofingRate);
 
-  // --- PHASE 2: FINISHING ---
+  // --- PHASE 2: FINISHING (Adjusted by Spec Tier & Specific Options) ---
 
-  // Tiles
+  // Tiles / Flooring
   const tileArea = Math.ceil(totalFloorArea * 1.25);
-  quantities.tiles = `${tileArea} sqm`;
-  costs.tiles = Math.ceil(tileArea * (mat.tiles_sqm || PRICING_CONFIG.materials.tiles_sqm) * typeMultiplier);
+  quantities.tiles = `${tileArea} sqm (${flooringConfig.name.split(' ')[0]})`;
+  costs.tiles = Math.ceil(tileArea * activeFlooringRate * typeMultiplier);
 
-  // POP Ceiling
+  // POP / Ceiling
   const popArea = Math.ceil(totalFloorArea);
-  quantities.pop = `${popArea} sqm`;
-  costs.pop = Math.ceil(popArea * (mat.pop_sqm || PRICING_CONFIG.materials.pop_sqm) * typeMultiplier);
+  quantities.pop = `${popArea} sqm (${ceilingConfig.name.split(' ')[0]})`;
+  costs.pop = Math.ceil(popArea * activeCeilingRate * typeMultiplier);
 
   // Paint
   const paintDrums = Math.ceil((wallArea * 2.2) / 30);
   quantities.paint = `${paintDrums} drums`;
-  costs.paint = paintDrums * (mat.paint_drum || PRICING_CONFIG.materials.paint_drum);
+  costs.paint = Math.ceil(paintDrums * (mat.paint_drum || PRICING_CONFIG.materials.paint_drum) * (specTier === 'luxury' ? 1.4 : specTier === 'premium' ? 1.2 : 1.0));
 
   // Windows
   const windowArea = Math.ceil(wallArea * 0.15);
   quantities.windows = `${windowArea} sqm`;
-  costs.windows = Math.ceil(windowArea * (mat.window_sqm || PRICING_CONFIG.materials.window_sqm) * typeMultiplier);
+  costs.windows = Math.ceil(windowArea * (mat.window_sqm || PRICING_CONFIG.materials.window_sqm) * typeMultiplier * specMultiplier);
 
   // Doors
   const internalDoors = Math.ceil(totalFloorArea / 15);
   const securityDoors = 2 * numFloors;
   quantities.doors = `${internalDoors} Internal, ${securityDoors} Security`;
-  costs.doors =
+  costs.doors = Math.ceil((
     internalDoors * (mat.door_internal || PRICING_CONFIG.materials.door_internal) +
-    securityDoors * (mat.door_security || PRICING_CONFIG.materials.door_security);
+    securityDoors * (mat.door_security || PRICING_CONFIG.materials.door_security)
+  ) * specMultiplier);
 
   // --- PHASE 3: SERVICES & LABOUR ---
 
-  const directCost = Object.values(costs).reduce((a, b) => a + b, 0);
-  const mepCost = Math.ceil(directCost * PRICING_CONFIG.multipliers.mep_load);
-  const laborCost = Math.ceil(directCost * 0.25);
+  const directBaseCost = Object.values(costs).reduce((a, b) => a + b, 0);
+  const mepCost = Math.ceil(directBaseCost * PRICING_CONFIG.multipliers.mep_load);
+  const laborCost = Math.ceil(directBaseCost * 0.25);
 
-  // --- PHASE 4: CONTINGENCY (deterministic) ---
+  // --- PHASE 4: ENGINEERING ADD-ONS ---
+  const addonsSummary = [];
+  let totalAddonsCost = 0;
 
-  const subTotal = directCost + mepCost + laborCost;
+  if (Array.isArray(selectedAddons) && selectedAddons.length > 0) {
+    selectedAddons.forEach((addonKey) => {
+      const addonMeta = PRICING_CONFIG.engineeringAddons[addonKey];
+      if (addonMeta) {
+        addonsSummary.push({
+          key: addonKey,
+          name: addonMeta.name,
+          cost: addonMeta.cost,
+          category: addonMeta.category,
+          icon: addonMeta.icon
+        });
+        totalAddonsCost += addonMeta.cost;
+      }
+    });
+  }
+
+  // --- PHASE 5: CONTINGENCY & GRAND TOTAL ---
+
+  const subTotal = directBaseCost + mepCost + laborCost + totalAddonsCost;
 
   // Deterministic variance based on project dimensions (5–10%)
   const varianceSeed = (sqm * 7 + numFloors * 13) % 100;
@@ -133,29 +193,29 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
     if (budgetDiff > 0) {
       budgetRisk = `Your budget is ₦${budgetDiff.toLocaleString()} above the estimated cost (${budgetDiffPercent}% surplus). Good buffer for unexpected project expenses.`;
     } else if (budgetDiff < 0) {
-      budgetRisk = `Your budget is ₦${Math.abs(budgetDiff).toLocaleString()} below the estimated cost (${Math.abs(budgetDiffPercent)}% shortfall). Consider increasing budget or phasing interior finishes.`;
+      budgetRisk = `Your budget is ₦${Math.abs(budgetDiff).toLocaleString()} below the estimated cost (${Math.abs(budgetDiffPercent)}% shortfall). Consider phasing interior finishes or selecting standard grade specifications.`;
     } else {
       budgetRisk = `Your budget matches the estimated cost exactly. Consider adding a 10–15% contingency buffer.`;
     }
   } else {
-    budgetRisk = 'No budget specified. Finishing materials (Tiles, POP, Fittings) vary significantly by brand and grade.';
+    budgetRisk = `No budget specified. Selected ${tierConfig.name} finishes will be key cost drivers.`;
   }
 
   // Timeline risk
   let timelineRisk;
   const recommendedMonths = Math.ceil(
-    (totalFloorArea / 100) * 3 * (typeMultiplier > 1 ? 1.2 : 1)
+    (totalFloorArea / 100) * 3 * (typeMultiplier > 1 ? 1.2 : 1) * (specTier === 'luxury' ? 1.25 : 1.0)
   );
   if (timelineMonths > 0) {
     if (timelineMonths < recommendedMonths * 0.7) {
-      timelineRisk = `${timelineMonths} months is aggressive for ${totalFloorArea} sqm (${typeName}). Recommended: ${recommendedMonths}+ months. Rushing construction may compromise structural curing.`;
+      timelineRisk = `${timelineMonths} months is aggressive for ${totalFloorArea} sqm (${typeName}, ${tierConfig.name}). Recommended: ${recommendedMonths}+ months.`;
     } else if (timelineMonths > recommendedMonths * 1.5) {
-      timelineRisk = `${timelineMonths} months is generous for ${totalFloorArea} sqm. This allows for thorough execution and quality control.`;
+      timelineRisk = `${timelineMonths} months is generous for ${totalFloorArea} sqm. This allows for thorough quality control.`;
     } else {
       timelineRisk = `${timelineMonths} months is realistic for ${totalFloorArea} sqm. Recommended range: ${Math.ceil(recommendedMonths * 0.8)}–${Math.ceil(recommendedMonths * 1.3)} months.`;
     }
   } else {
-    timelineRisk = 'No timeline specified. Standard allowance is 6–12 months depending on finishes procurement.';
+    timelineRisk = `No timeline specified. Standard allowance for ${tierConfig.name} build is ${recommendedMonths} months.`;
   }
 
   // Overall risk level
@@ -171,8 +231,8 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
   // --- WARNINGS & RECOMMENDATIONS ---
 
   const warnings = [
-    'Prices are for STANDARD quality finishes. Luxury specifications will increase costs.',
-    'Professional structural engineering supervision is assumed.',
+    `Pricing calibrated for ${tierConfig.name} specification grade.`,
+    `Foundation estimated for ${foundationConfig.name}. Consult geotechnical soil test before casting.`,
     'MEP costs are estimates based on standard loads; specific engineering designs required for tender.',
   ];
 
@@ -184,15 +244,29 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
   }
 
   const recommendations = [
-    'Procure cement and steel in bulk batches to hedge against market price volatility.',
+    `Lock material orders early for ${flooringConfig.name} and ${roofingConfig.name} to avoid shipment delays.`,
     'Supervise rebar cutting and bending closely on site to keep steel waste below 5%.',
-    'Consider factory-direct aluminium glazed windows to save up to 20% on fenestration costs.',
+    'Ensure stage-by-stage quantity surveying verification before contractor disbursements.',
   ];
+
+  if (totalAddonsCost > 0) {
+    recommendations.push(`Ancillary engineering works total ₦${totalAddonsCost.toLocaleString()} across ${addonsSummary.length} add-ons.`);
+  }
 
   const shortfallAmount = budgetAmount > 0 && budgetAmount < grandTotal ? (grandTotal - budgetAmount) : 0;
 
   return {
     pricesLastUpdated: PRICING_CONFIG._meta.lastUpdated,
+    specifications: {
+      specTier,
+      specTierName: tierConfig.name,
+      flooringName: flooringConfig.name,
+      roofingName: roofingConfig.name,
+      ceilingName: ceilingConfig.name,
+      foundationName: foundationConfig.name
+    },
+    addons: addonsSummary,
+    totalAddonsCost,
     materials: quantities,
     costs: {
       cement: costs.cement,
@@ -207,6 +281,7 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
       doors: costs.doors,
       m_e_p: mepCost,
       labor: laborCost,
+      addons: totalAddonsCost,
       contingency: contingencyCost,
       total: grandTotal,
     },

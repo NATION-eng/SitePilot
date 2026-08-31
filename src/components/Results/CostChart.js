@@ -25,6 +25,7 @@ const CostChart = ({ costs }) => {
 
   const mepCost = costs.m_e_p || 0;
   const laborCost = costs.labor || 0;
+  const addonsCost = costs.addons || 0;
   const contingencyCost = costs.contingency || 0;
   const total = costs.total || 1;
 
@@ -33,6 +34,7 @@ const CostChart = ({ costs }) => {
     { label: 'Finishing & Fittings', amount: finishesCost, color: '#3B82F6', iconName: 'finishes' },
     { label: 'MEP Services', amount: mepCost, color: '#9333EA', iconName: 'mep' },
     { label: 'Direct Labour', amount: laborCost, color: '#00D9A3', iconName: 'labor' },
+    ...(addonsCost > 0 ? [{ label: 'Site Add-ons', amount: addonsCost, color: '#EC4899', iconName: 'mep' }] : []),
     { label: 'Contingency', amount: contingencyCost, color: '#FFB800', iconName: 'contingency' }
   ].filter(s => s.amount > 0);
 

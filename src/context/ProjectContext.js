@@ -12,6 +12,12 @@ const defaultProjectData = {
   location: '',
   buildingSize: '',
   floors: '',
+  specTier: 'standard',
+  flooringType: 'ceramic',
+  roofingType: 'aluminium',
+  ceilingType: 'pop',
+  foundationType: 'strip',
+  selectedAddons: [],
   budget: '',
   timeline: '',
   notes: ''
@@ -38,7 +44,7 @@ export const ProjectProvider = ({ children }) => {
     progress,
     isFirstStep,
     isLastStep
-  } = useMultiStepForm(4);
+  } = useMultiStepForm(5); // 5-step workflow (1: Type, 2: Dimensions, 3: Specs, 4: Constraints, 5: Calculating)
 
   // Clear timeout on unmount
   useEffect(() => {
@@ -51,6 +57,16 @@ export const ProjectProvider = ({ children }) => {
 
   const updateProjectData = useCallback((field, value) => {
     setProjectData(prev => ({ ...prev, [field]: value }));
+  }, [setProjectData]);
+
+  const toggleAddon = useCallback((addonKey) => {
+    setProjectData(prev => {
+      const currentAddons = Array.isArray(prev.selectedAddons) ? prev.selectedAddons : [];
+      const updated = currentAddons.includes(addonKey)
+        ? currentAddons.filter(k => k !== addonKey)
+        : [...currentAddons, addonKey];
+      return { ...prev, selectedAddons: updated };
+    });
   }, [setProjectData]);
 
   const announce = useCallback((msg) => {
@@ -90,7 +106,7 @@ export const ProjectProvider = ({ children }) => {
 
   const generateAnalysis = useCallback(() => {
     setIsLoading(true);
-    goToStep(4);
+    goToStep(5);
     setError(null);
     announce('Calculating construction estimate. Please wait.');
 
@@ -112,7 +128,7 @@ export const ProjectProvider = ({ children }) => {
         console.error('Calculation failed:', err);
         setError(err.message || 'An unexpected error occurred. Please try again.');
         setIsLoading(false);
-        goToStep(3);
+        goToStep(4);
         announce(`Calculation error: ${err.message || 'Please try again.'}`);
       }
     }, 1800);
@@ -158,6 +174,7 @@ export const ProjectProvider = ({ children }) => {
     setMaterialPrices,
     resetMaterialPrices,
     recalculateEstimate,
+    toggleAddon,
     formatMoney: (amountInNGN) => formatCurrency(amountInNGN, currency),
     convertMoney: (amountInNGN) => convertCurrency(amountInNGN, currency),
     analysisResults,

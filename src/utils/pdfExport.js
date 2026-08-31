@@ -11,7 +11,7 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
   const currencyInfo = getCurrencyInfo(currency);
   const unitInfo = getUnitInfo(unit);
   const { projectType, location, buildingSize, floors, budget, timeline, notes } = projectData;
-  const { costs, materials, risk, warnings, recommendations, pricesLastUpdated } = analysis;
+  const { costs, materials, risk, warnings, recommendations, pricesLastUpdated, specifications, addons, totalAddonsCost } = analysis;
 
   const dateStr = new Date().toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -77,12 +77,29 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
         border: 1px solid #e2e8f0;
         border-radius: 8px;
         padding: 12px;
-        margin-bottom: 18px;
+        margin-bottom: 14px;
       }
       .pdf-meta-item { display: flex; flex-direction: column; }
       .pdf-meta-label { font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 600; }
       .pdf-meta-value { font-size: 12px; color: #0f172a; font-weight: 700; margin-top: 2px; }
       
+      .pdf-specs-pill-bar {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      .pdf-spec-pill {
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 10.5px;
+        color: #334155;
+        font-weight: 600;
+      }
+      .pdf-spec-pill strong { color: #FF6B00; }
+
       .pdf-section {
         margin-bottom: 18px;
         page-break-inside: avoid;
@@ -188,12 +205,12 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
         <span class="pdf-meta-value">${buildingSize} ${unitInfo.symbol} (${floors} Floors)</span>
       </div>
       <div class="pdf-meta-item">
-        <span class="pdf-meta-label">Client Budget</span>
-        <span class="pdf-meta-value">${budget ? fmt(budget) : 'Not Specified'}</span>
+        <span class="pdf-meta-label">Specification Tier</span>
+        <span class="pdf-meta-value">${specifications?.specTierName || 'Standard'}</span>
       </div>
       <div class="pdf-meta-item">
-        <span class="pdf-meta-label">Target Timeline</span>
-        <span class="pdf-meta-value">${timeline ? `${timeline} Months` : 'Not Specified'}</span>
+        <span class="pdf-meta-label">Client Budget</span>
+        <span class="pdf-meta-value">${budget ? fmt(budget) : 'Not Specified'}</span>
       </div>
       <div class="pdf-meta-item">
         <span class="pdf-meta-label">Currency / Pricing Basis</span>
@@ -201,8 +218,18 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
       </div>
     </div>
 
+    <!-- Engineering Specs Summary Pills -->
+    ${specifications ? `
+      <div class="pdf-specs-pill-bar">
+        <div class="pdf-spec-pill">Substructure: <strong>${specifications.foundationName}</strong></div>
+        <div class="pdf-spec-pill">Flooring: <strong>${specifications.flooringName}</strong></div>
+        <div class="pdf-spec-pill">Roofing: <strong>${specifications.roofingName}</strong></div>
+        <div class="pdf-spec-pill">Ceiling: <strong>${specifications.ceilingName}</strong></div>
+      </div>
+    ` : ''}
+
     ${notes ? `
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; margin-bottom: 16px; font-size: 11px;">
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; margin-bottom: 14px; font-size: 11px;">
         <strong style="color: #475569;">Client Project Notes:</strong> <span style="color: #334155;">${notes}</span>
       </div>
     ` : ''}
@@ -246,7 +273,7 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
             <td class="text-right font-bold">${fmt(costs.aggregates)}</td>
           </tr>
           <tr>
-            <td>Roofing System (Aluminium 0.55mm)</td>
+            <td>Roofing System</td>
             <td>${materials.roofing || 'N/A'}</td>
             <td class="text-right font-bold">${fmt(costs.roofing)}</td>
           </tr>
@@ -255,12 +282,12 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
             <td class="font-bold" colspan="3" style="background: #f8fafc; color: #475569;">PHASE 2: FINISHING & FITTINGS — Total: ${fmt(finishesCost)}</td>
           </tr>
           <tr>
-            <td>Floor & Wall Tiles (Vitrified/Ceramic)</td>
+            <td>Floor & Wall Tiles</td>
             <td>${materials.tiles || 'N/A'}</td>
             <td class="text-right font-bold">${fmt(costs.tiles)}</td>
           </tr>
           <tr>
-            <td>POP Ceiling Boarding & Moulding</td>
+            <td>Ceiling System</td>
             <td>${materials.pop || 'N/A'}</td>
             <td class="text-right font-bold">${fmt(costs.pop)}</td>
           </tr>
@@ -270,7 +297,7 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
             <td class="text-right font-bold">${fmt(costs.paint)}</td>
           </tr>
           <tr>
-            <td>Glazed Aluminium Windows</td>
+            <td>Glazed Windows</td>
             <td>${materials.windows || 'N/A'}</td>
             <td class="text-right font-bold">${fmt(costs.windows)}</td>
           </tr>
@@ -281,7 +308,7 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
           </tr>
 
           <tr>
-            <td class="font-bold" colspan="3" style="background: #f8fafc; color: #475569;">PHASE 3: SERVICES, LABOUR & CONTINGENCY</td>
+            <td class="font-bold" colspan="3" style="background: #f8fafc; color: #475569;">PHASE 3: SERVICES & TRADE LABOUR</td>
           </tr>
           <tr>
             <td>MEP Services (Mechanical, Electrical, Plumbing 18%)</td>
@@ -292,6 +319,23 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
             <td>Direct Trade Labour (25% Direct Load)</td>
             <td>Full Construction Trades</td>
             <td class="text-right font-bold">${fmt(costs.labor)}</td>
+          </tr>
+
+          ${addons && addons.length > 0 ? `
+            <tr>
+              <td class="font-bold" colspan="3" style="background: #f8fafc; color: #475569;">PHASE 4: SITE INFRASTRUCTURE & ADD-ONS — Total: ${fmt(totalAddonsCost)}</td>
+            </tr>
+            ${addons.map(a => `
+              <tr>
+                <td>${a.name}</td>
+                <td>${a.category}</td>
+                <td class="text-right font-bold">${fmt(a.cost)}</td>
+              </tr>
+            `).join('')}
+          ` : ''}
+
+          <tr>
+            <td class="font-bold" colspan="3" style="background: #f8fafc; color: #475569;">CONTINGENCY PROVISION</td>
           </tr>
           <tr>
             <td>Unforeseen Contingency Provision</td>
@@ -305,7 +349,7 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
       <div class="pdf-total-card">
         <div>
           <div class="pdf-total-label">ESTIMATED TOTAL PROJECT COST</div>
-          <div style="font-size: 10px; color: #78350f;">Includes Structure, Finishes, MEP, Labour & Contingency</div>
+          <div style="font-size: 10px; color: #78350f;">Includes Structure, Finishes, MEP, Labour${totalAddonsCost > 0 ? ', Add-ons' : ''} & Contingency</div>
         </div>
         <div class="pdf-total-val">${fmt(costs.total)}</div>
       </div>

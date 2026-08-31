@@ -1,9 +1,9 @@
 {
   "_meta": {
-    "description": "SitePilot Construction Pricing Config — Nigerian market rates",
+    "description": "SitePilot Construction Pricing Config — Nigerian market rates & Engineering Specifications",
     "baseCurrency": "NGN",
-    "lastUpdated": "2026-08-28",
-    "nextReviewDue": "2026-11-28",
+    "lastUpdated": "2026-08-30",
+    "nextReviewDue": "2026-11-30",
     "source": "Nigerian QS heuristics + 2026 Q3 market survey"
   },
   "currencies": {
@@ -17,6 +17,80 @@
   "units": {
     "sqm": { "name": "Square Metres", "symbol": "sqm", "factor": 1.0 },
     "sqft": { "name": "Square Feet", "symbol": "sq ft", "factor": 10.7639 }
+  },
+  "specTiers": {
+    "standard": {
+      "name": "Standard (Economy)",
+      "multiplier": 1.0,
+      "description": "Standard 30x30 ceramic tiles, sliding aluminium windows, plain POP plaster cast, standard flush doors"
+    },
+    "premium": {
+      "name": "Premium (Executive)",
+      "multiplier": 1.35,
+      "description": "60x60 vitrified porcelain tiles, powder-coated casement windows, gypsum board ceiling, solid hardwood doors"
+    },
+    "luxury": {
+      "name": "Luxury (Bespoke)",
+      "multiplier": 1.85,
+      "description": "Granite & Italian marble slabs, double-glazed curtain walling, architectural coffered ceilings, biometric security doors"
+    }
+  },
+  "materialOptions": {
+    "flooring": {
+      "ceramic": { "name": "Ceramic Tiles (Standard 30x30)", "rate": 6500 },
+      "vitrified": { "name": "Vitrified Porcelain (60x60)", "rate": 12500 },
+      "granite": { "name": "Granite / Marble Slabs", "rate": 24000 },
+      "wood": { "name": "Hardwood Parquet / Vinyl", "rate": 18000 }
+    },
+    "roofing": {
+      "aluminium": { "name": "Aluminium Longspan (0.55mm)", "rate": 7500 },
+      "stone_coated": { "name": "Stone-Coated Gerard Tiles", "rate": 14000 },
+      "concrete_deck": { "name": "Reinforced Concrete Flat Deck", "rate": 22000 },
+      "shingles": { "name": "Asphalt Roofing Shingles", "rate": 16000 }
+    },
+    "ceiling": {
+      "pop": { "name": "Standard POP Plaster Cast", "rate": 8000 },
+      "gypsum": { "name": "Gypsum Plasterboard & Coving", "rate": 13000 },
+      "pvc": { "name": "Suspended PVC Ceiling", "rate": 6000 },
+      "acoustic": { "name": "Acoustic Drop Grid Tiles", "rate": 15000 }
+    },
+    "foundation": {
+      "strip": { "name": "Standard Strip / Pad Footing (Firm Soil)", "multiplier": 1.0 },
+      "raft": { "name": "Raft Foundation (Marshy / High Water Table)", "multiplier": 1.40 },
+      "piled": { "name": "Deep Pile Foundation (Coastal / Heavy Load)", "multiplier": 2.10 }
+    }
+  },
+  "engineeringAddons": {
+    "borehole": {
+      "name": "Industrial Borehole & Water Treatment Facility",
+      "cost": 3800000,
+      "category": "Water & Utility",
+      "icon": "sand"
+    },
+    "solar": {
+      "name": "10kVA Hybrid Solar PV & Lithium Storage System",
+      "cost": 8500000,
+      "category": "Power & Energy",
+      "icon": "mep"
+    },
+    "fencing": {
+      "name": "Perimeter Fencing (120m), Razor Wire & Gatehouse",
+      "cost": 6500000,
+      "category": "Security & Site",
+      "icon": "blocks"
+    },
+    "pool": {
+      "name": "Reinforced Concrete Swimming Pool (8m x 4m)",
+      "cost": 14000000,
+      "category": "Recreational",
+      "icon": "structure"
+    },
+    "elevator": {
+      "name": "Passenger Elevator / Lift Installation",
+      "cost": 32000000,
+      "category": "Vertical Transport",
+      "icon": "commercial"
+    }
   },
   "materials": {
     "cement": 9500,
