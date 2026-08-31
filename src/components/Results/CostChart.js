@@ -50,12 +50,13 @@ const CostChart = ({ costs }) => {
   let cumulativePercent = 0;
 
   const convertedTotal = convertMoney(total);
+  const currSymbol = currencyInfo?.symbol || '₦';
   const formattedTotalShort =
     convertedTotal >= 1000000
-      ? `${currencyInfo.symbol}${(convertedTotal / 1000000).toFixed(1)}M`
+      ? `${currSymbol}${(convertedTotal / 1000000).toFixed(1)}M`
       : convertedTotal >= 10000
-      ? `${currencyInfo.symbol}${(convertedTotal / 1000).toFixed(1)}K`
-      : `${currencyInfo.symbol}${convertedTotal.toLocaleString()}`;
+      ? `${currSymbol}${(convertedTotal / 1000).toFixed(1)}K`
+      : `${currSymbol}${convertedTotal.toLocaleString()}`;
 
   return (
     <div className="cost-chart-container">

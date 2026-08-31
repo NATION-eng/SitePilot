@@ -36,15 +36,15 @@ const Results = () => {
             </div>
             
             <div className="currency-pill" data-html2canvas-ignore="true">
-              Active Currency: <strong>{currencyInfo.name} ({currencyInfo.symbol} {currency})</strong>
+              Active Currency: <strong>{currencyInfo?.name || 'Naira'} ({currencyInfo?.symbol || '₦'} {currency})</strong>
             </div>
           </div>
 
           <h2 id="results-title" className="section-title">
-            {projectData.projectType.charAt(0).toUpperCase() + projectData.projectType.slice(1)} Project Estimate
+            {projectData.projectType ? projectData.projectType.charAt(0).toUpperCase() + projectData.projectType.slice(1) : 'Project'} Estimate
           </h2>
           <p className="section-subtitle">
-            {projectData.buildingSize} {unitInfo.symbol} • {projectData.floors} floors • {projectData.location}
+            {projectData.buildingSize} {unitInfo?.symbol || 'm²'} • {projectData.floors} floors • {projectData.location}
           </p>
 
           {/* Engineering Specifications Summary Bar */}

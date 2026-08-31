@@ -194,8 +194,8 @@ export const ProjectProvider = ({ children }) => {
     return convertCurrency(amountInNGN, currency);
   }, [currency]);
 
-  const currencyData = getCurrencyInfo(currency);
-  const unitData = getUnitInfo(unit);
+  const currencyInfo = getCurrencyInfo(currency);
+  const unitInfo = getUnitInfo(unit);
 
   const value = {
     view,
@@ -208,12 +208,14 @@ export const ProjectProvider = ({ children }) => {
     removeCustomMaterial,
     currency,
     setCurrency,
-    currencyData,
+    currencyInfo,
+    currencyData: currencyInfo,
     formatMoney,
     convertMoney,
     unit,
     setUnit,
-    unitData,
+    unitInfo,
+    unitData: unitInfo,
     materialPrices,
     setMaterialPrices,
     resetMaterialPrices,

@@ -41,7 +41,7 @@ const StepTwo = () => {
 
       <div className="responsive-form-row">
         <Input
-          label={`Building Area (${unitInfo.symbol})`}
+          label={`Building Area (${unitInfo?.symbol || 'm²'})`}
           name="buildingSize"
           type="number"
           min={1}

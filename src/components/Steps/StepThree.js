@@ -24,7 +24,7 @@ const StepThree = () => {
       <p className="section-subtitle">Set your financial and time constraints</p>
 
       <Input
-        label={`Budget Range (${currencyInfo.symbol})`}
+        label={`Budget Range (${currencyInfo?.symbol || '₦'})`}
         name="budget"
         type="number"
         min={1}
