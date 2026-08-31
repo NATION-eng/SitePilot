@@ -213,6 +213,10 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
         <span class="pdf-meta-value">${budget ? fmt(budget) : 'Not Specified'}</span>
       </div>
       <div class="pdf-meta-item">
+        <span class="pdf-meta-label">Target Timeline</span>
+        <span class="pdf-meta-value">${timeline ? `${timeline} Months` : 'Not Specified'}</span>
+      </div>
+      <div class="pdf-meta-item">
         <span class="pdf-meta-label">Currency / Pricing Basis</span>
         <span class="pdf-meta-value">${currency} (Rates: ${pricesLastUpdated || '2026-08'})</span>
       </div>
