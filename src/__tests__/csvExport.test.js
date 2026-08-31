@@ -59,13 +59,12 @@ describe('SitePilot BOQ CSV Export Utility', () => {
   test('generates valid CSV starting with UTF-8 BOM in base NGN', () => {
     const csv = generateBOQCSV(sampleProject, sampleAnalysis, 'NGN');
     expect(csv.startsWith('\uFEFF')).toBe(true);
-    expect(csv).toContain('SITEPILOT - PRE-CONSTRUCTION BILL OF QUANTITIES (BOQ)');
+    expect(csv).toContain('BILL OF QUANTITIES (BOQ)');
     expect(csv).toContain('PHASE 1: SUBSTRUCTURE & SUPERSTRUCTURE');
     expect(csv).toContain('PHASE 2: FINISHING & ARCHITECTURAL FITTINGS');
     expect(csv).toContain('PHASE 3: SERVICES & TRADE LABOUR');
-    expect(csv).toContain('PHASE 4: CONTINGENCY & GRAND TOTAL');
     expect(csv).toContain('Lekki, Lagos');
-    expect(csv).toContain('115857245');
+    expect(csv).toContain('115,857,245');
   });
 
   test('properly escapes commas and quotes in project notes', () => {
@@ -76,7 +75,20 @@ describe('SitePilot BOQ CSV Export Utility', () => {
   test('converts cost numbers when exporting in USD', () => {
     const csvUSD = generateBOQCSV(sampleProject, sampleAnalysis, 'USD');
     expect(csvUSD).toContain('ESTIMATED COST (USD)');
-    // 115,857,245 * 0.000645 = ~74728
-    expect(csvUSD).toContain('74728');
+    expect(csvUSD).toContain('$74,728');
+  });
+
+  test('formats custom engineer materials in the CSV output', () => {
+    const analysisWithCustom = {
+      ...sampleAnalysis,
+      customMaterials: [
+        { name: 'Imported Marble Slabs', unit: 'sqm', quantity: 50, unitPrice: 30000, lineCost: 1500000 }
+      ]
+    };
+    const csv = generateBOQCSV(sampleProject, analysisWithCustom, 'NGN');
+    expect(csv).toContain('CUSTOM ENGINEER MATERIALS & TAKEOFF ITEMS');
+    expect(csv).toContain('Imported Marble Slabs');
+    expect(csv).toContain('50 sqm @ ₦30,000/sqm');
+    expect(csv).toContain('₦1,500,000');
   });
 });

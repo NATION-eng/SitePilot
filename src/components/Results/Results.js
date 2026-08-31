@@ -89,7 +89,7 @@ const Results = () => {
           )}
 
           <div className="results-grid slide-up" style={{ animationDelay: '0.3s' }}>
-            <MaterialEstimates materials={analysis.materials} />
+            <MaterialEstimates materials={analysis.materials} customMaterials={analysis.customMaterials} />
             <CostAnalysis costs={analysis.costs} />
             <RiskAssessment risk={analysis.risk} />
             <Recommendations recommendations={analysis.recommendations} />

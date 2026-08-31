@@ -1,56 +1,47 @@
+import { formatCurrency } from './currencyFormatter';
+
 /**
- * SitePilot Bill of Quantities (BOQ) CSV Export Utility
- * Generates an Excel-compatible CSV with UTF-8 BOM, multi-currency support, and engineering specs.
+ * SitePilot Professional BOQ CSV Generator
+ * Generates an Excel-ready, UTF-8 encoded Bill of Quantities CSV spreadsheet.
  */
-
-import { convertCurrency, getCurrencyInfo } from './currencyFormatter';
-
 export const generateBOQCSV = (projectData, analysis, currency = 'NGN') => {
   if (!projectData || !analysis || !analysis.costs) return '';
 
   const { projectType, location, buildingSize, floors, budget, timeline, notes } = projectData;
-  const { costs, materials, risk, warnings, recommendations, pricesLastUpdated, specifications, addons } = analysis;
-
-  const currencyInfo = getCurrencyInfo(currency);
-  const symbol = currencyInfo.symbol;
-
-  const fmtCost = (val) => convertCurrency(val, currency);
-
-  const escapeCSV = (str) => {
-    if (str === null || str === undefined) return '';
-    const stringified = String(str);
-    if (stringified.includes(',') || stringified.includes('"') || stringified.includes('\n')) {
-      return `"${stringified.replace(/"/g, '""')}"`;
-    }
-    return stringified;
-  };
+  const { costs, materials, risk, warnings, recommendations, pricesLastUpdated, specifications, addons, customMaterials } = analysis;
 
   const rows = [];
+  const fmtCost = (amount) => formatCurrency(amount, currency);
 
-  // 1. Header Banner
-  rows.push(['SITEPILOT - PRE-CONSTRUCTION BILL OF QUANTITIES (BOQ)']);
-  rows.push(['Generated Date', new Date().toISOString().split('T')[0]]);
-  rows.push(['Currency', `${currencyInfo.name} (${currencyInfo.symbol} ${currency})`]);
-  rows.push(['Pricing Basis', `Nigerian QS Standards (Rates last updated: ${pricesLastUpdated || '2026-08'})`]);
+  // 1. Header Information
+  rows.push(['SITEPILOT PRE-CONSTRUCTION INTELLIGENCE REPORT']);
+  rows.push(['BILL OF QUANTITIES (BOQ) & COST ESTIMATE BREAKDOWN']);
+  rows.push(['Generated On', new Date().toLocaleString()]);
+  rows.push(['Currency', currency]);
+  rows.push(['Pricing Baseline Source', `Nigerian QS Heuristics (Ref: ${pricesLastUpdated || '2026-08'})`]);
   rows.push([]);
 
-  // 2. Project Specifications & Engineering Grade
-  rows.push(['--- PROJECT SPECIFICATIONS & ENGINEERING SPECS ---']);
-  rows.push(['Project Type', projectType ? projectType.toUpperCase() : 'N/A']);
-  rows.push(['Location', location || 'N/A']);
-  rows.push(['Building Floor Area', `${buildingSize || 0} sqm`]);
-  rows.push(['Number of Floors', floors || 1]);
+  // 2. Project Parameters
+  rows.push(['--- PROJECT PARAMETERS ---']);
+  rows.push(['Project Type', (projectType || 'Residential').toUpperCase()]);
+  rows.push(['Location', location || 'Not Specified']);
+  rows.push(['Gross Floor Area', `${buildingSize} sqm`]);
+  rows.push(['Number of Floors', floors || '1']);
+  rows.push(['Client Budget', budget ? fmtCost(budget) : 'Not Specified']);
+  rows.push(['Target Timeline', timeline ? `${timeline} Months` : 'Not Specified']);
+  if (notes) rows.push(['Engineer Notes', notes]);
+  rows.push([]);
+
+  // 2b. Engineering Specifications
   if (specifications) {
-    rows.push(['Specification Grade', specifications.specTierName || 'Standard']);
-    rows.push(['Substructure / Soil Type', specifications.foundationName || 'Standard Strip']);
-    rows.push(['Specified Flooring', specifications.flooringName || 'Standard Ceramic']);
-    rows.push(['Specified Roofing', specifications.roofingName || 'Aluminium Longspan']);
-    rows.push(['Specified Ceiling', specifications.ceilingName || 'POP Plaster Cast']);
+    rows.push(['--- PROJECT SPECIFICATIONS & ENGINEERING GRADE ---']);
+    rows.push(['Finish Quality Grade', specifications.specTierName || 'Standard']);
+    rows.push(['Substructure / Soil Condition', specifications.foundationName || 'Strip Foundation']);
+    rows.push(['Selected Flooring Material', specifications.flooringName || 'Standard Ceramic Tiles']);
+    rows.push(['Selected Roofing System', specifications.roofingName || 'Aluminium Longspan']);
+    rows.push(['Selected Ceiling System', specifications.ceilingName || 'POP Plasterboard']);
+    rows.push([]);
   }
-  rows.push(['Client Budget', budget ? `${symbol}${fmtCost(budget).toLocaleString()}` : 'Not Specified']);
-  rows.push(['Target Timeline', timeline ? `${timeline} months` : 'Not Specified']);
-  if (notes) rows.push(['Notes / Requirements', notes]);
-  rows.push([]);
 
   // 3. BOQ Line Items Table
   rows.push(['ITEM NO', 'TRADE / WORK SECTION', 'QUANTITY / TAKEOFF', `ESTIMATED COST (${currency})`]);
@@ -76,10 +67,25 @@ export const generateBOQCSV = (projectData, analysis, currency = 'NGN') => {
   rows.push(['3.1', 'MEP (Mechanical, Electrical & Plumbing 18%)', 'Full Installation Load', fmtCost(costs.m_e_p)]);
   rows.push(['3.2', 'Direct Trade Labour (Blended QS Rate)', 'All Trades Combined', fmtCost(costs.labor)]);
 
-  // Phase 4: Engineering Add-ons & Site Infrastructure (if any)
   let nextPhase = 4;
+
+  // Custom User Materials (if any)
+  if (customMaterials && customMaterials.length > 0) {
+    rows.push([`${nextPhase}.0`, 'PHASE ' + nextPhase + ': CUSTOM ENGINEER MATERIALS & TAKEOFF ITEMS', '', '']);
+    customMaterials.forEach((item, i) => {
+      rows.push([
+        `${nextPhase}.${i + 1}`,
+        item.name,
+        `${item.quantity} ${item.unit} @ ${fmtCost(item.unitPrice)}/${item.unit}`,
+        fmtCost(item.lineCost)
+      ]);
+    });
+    nextPhase++;
+  }
+
+  // Phase 4/5: Engineering Add-ons & Site Infrastructure (if any)
   if (addons && addons.length > 0) {
-    rows.push([`${nextPhase}.0`, 'PHASE 4: SITE INFRASTRUCTURE & ENGINEERING ADD-ONS', '', '']);
+    rows.push([`${nextPhase}.0`, `PHASE ${nextPhase}: SITE INFRASTRUCTURE & ENGINEERING ADD-ONS`, '', '']);
     addons.forEach((addon, i) => {
       rows.push([`${nextPhase}.${i + 1}`, addon.name, addon.category, fmtCost(addon.cost)]);
     });
@@ -109,35 +115,36 @@ export const generateBOQCSV = (projectData, analysis, currency = 'NGN') => {
   if (recommendations && recommendations.length > 0) {
     rows.push(['--- EXPERT QS RECOMMENDATIONS ---']);
     recommendations.forEach((r, i) => rows.push([`Recommendation ${i + 1}`, r]));
+    rows.push([]);
   }
 
-  // Format into CSV string
-  const csvContent = rows
-    .map(row => row.map(escapeCSV).join(','))
-    .join('\r\n');
+  // 6. Escape and serialize to CSV format with UTF-8 BOM
+  const csvContent = rows.map(row => {
+    return row.map(cell => {
+      if (cell === null || cell === undefined) return '""';
+      const cellStr = String(cell).replace(/"/g, '""');
+      return `"${cellStr}"`;
+    }).join(',');
+  }).join('\r\n');
 
-  // Prefix UTF-8 BOM so Excel opens with proper accents and currency symbols
   return '\uFEFF' + csvContent;
 };
 
 /**
- * Triggers a browser download of the BOQ CSV file.
+ * Triggers a direct browser download of the generated CSV file.
  */
 export const downloadBOQCSV = (projectData, analysis, currency = 'NGN') => {
-  const csv = generateBOQCSV(projectData, analysis, currency);
-  if (!csv) return;
+  const csvString = generateBOQCSV(projectData, analysis, currency);
+  if (!csvString) return;
 
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
 
-  const projectType = projectData?.projectType || 'project';
+  const projectName = projectData.projectType ? projectData.projectType.toLowerCase() : 'project';
   const dateStr = new Date().toISOString().split('T')[0];
-  const filename = `SitePilot_BOQ_${projectType}_${currency}_${dateStr}.csv`;
-
   link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
+  link.setAttribute('download', `SitePilot_BOQ_${projectName}_${dateStr}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

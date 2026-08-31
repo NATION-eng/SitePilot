@@ -129,6 +129,20 @@ describe('SitePilot Construction Pricing Engine', () => {
     expect(tightTimeline.risk.timelineRisk).toMatch(/aggressive/i);
   });
 
+  test('correctly calculates user custom materials and integrates into total', () => {
+    const customMats = [
+      { name: 'Italian Marble Slabs', unit: 'sqm', quantity: '50', unitPrice: '30000' },
+      { name: 'Acoustic Ceiling Panels', unit: 'sqm', quantity: '100', unitPrice: '15000' }
+    ];
+    const withCustom = calculateConstructionCosts({ ...sampleResidential, customMaterials: customMats });
+    const withoutCustom = calculateConstructionCosts({ ...sampleResidential, customMaterials: [] });
+
+    expect(withCustom.customMaterials).toHaveLength(2);
+    expect(withCustom.totalCustomMaterialsCost).toBe(50 * 30000 + 100 * 15000); // 1,500,000 + 1,500,000 = 3,000,000
+    expect(withCustom.costs.customMaterials).toBe(3000000);
+    expect(withCustom.costs.total).toBeGreaterThan(withoutCustom.costs.total);
+  });
+
   test('exposes pricesLastUpdated date matching config', () => {
     const result = calculateConstructionCosts(sampleResidential);
     expect(result.pricesLastUpdated).toBe(PRICING_CONFIG._meta.lastUpdated);

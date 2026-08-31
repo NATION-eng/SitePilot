@@ -8,7 +8,7 @@ const CostChart = ({ costs }) => {
 
   if (!costs || !costs.total) return null;
 
-  // Aggregate costs into 5 primary QS cost centres (in base NGN)
+  // Aggregate costs into primary QS cost centres (in base NGN)
   const structureCost =
     (costs.cement || 0) +
     (costs.blocks || 0) +
@@ -25,6 +25,7 @@ const CostChart = ({ costs }) => {
 
   const mepCost = costs.m_e_p || 0;
   const laborCost = costs.labor || 0;
+  const customMaterialsCost = costs.customMaterials || 0;
   const addonsCost = costs.addons || 0;
   const contingencyCost = costs.contingency || 0;
   const total = costs.total || 1;
@@ -34,6 +35,7 @@ const CostChart = ({ costs }) => {
     { label: 'Finishing & Fittings', amount: finishesCost, color: '#3B82F6', iconName: 'finishes' },
     { label: 'MEP Services', amount: mepCost, color: '#9333EA', iconName: 'mep' },
     { label: 'Direct Labour', amount: laborCost, color: '#00D9A3', iconName: 'labor' },
+    ...(customMaterialsCost > 0 ? [{ label: 'Custom Materials', amount: customMaterialsCost, color: '#06B6D4', iconName: 'tools' }] : []),
     ...(addonsCost > 0 ? [{ label: 'Site Add-ons', amount: addonsCost, color: '#EC4899', iconName: 'mep' }] : []),
     { label: 'Contingency', amount: contingencyCost, color: '#FFB800', iconName: 'contingency' }
   ].filter(s => s.amount > 0);

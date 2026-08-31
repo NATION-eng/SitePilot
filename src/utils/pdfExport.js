@@ -11,7 +11,19 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
   const currencyInfo = getCurrencyInfo(currency);
   const unitInfo = getUnitInfo(unit);
   const { projectType, location, buildingSize, floors, budget, timeline, notes } = projectData;
-  const { costs, materials, risk, warnings, recommendations, pricesLastUpdated, specifications, addons, totalAddonsCost } = analysis;
+  const {
+    costs,
+    materials,
+    risk,
+    warnings,
+    recommendations,
+    pricesLastUpdated,
+    specifications,
+    addons,
+    totalAddonsCost,
+    customMaterials,
+    totalCustomMaterialsCost
+  } = analysis;
 
   const dateStr = new Date().toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -325,9 +337,22 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
             <td class="text-right font-bold">${fmt(costs.labor)}</td>
           </tr>
 
+          ${customMaterials && customMaterials.length > 0 ? `
+            <tr>
+              <td class="font-bold" colspan="3" style="background: #f8fafc; color: #475569;">CUSTOM ENGINEER MATERIALS & TAKEOFF ITEMS — Total: ${fmt(totalCustomMaterialsCost)}</td>
+            </tr>
+            ${customMaterials.map(m => `
+              <tr>
+                <td>${m.name}</td>
+                <td>${m.quantity} ${m.unit} @ ${fmt(m.unitPrice)}/${m.unit}</td>
+                <td class="text-right font-bold">${fmt(m.lineCost)}</td>
+              </tr>
+            `).join('')}
+          ` : ''}
+
           ${addons && addons.length > 0 ? `
             <tr>
-              <td class="font-bold" colspan="3" style="background: #f8fafc; color: #475569;">PHASE 4: SITE INFRASTRUCTURE & ADD-ONS — Total: ${fmt(totalAddonsCost)}</td>
+              <td class="font-bold" colspan="3" style="background: #f8fafc; color: #475569;">SITE INFRASTRUCTURE & ADD-ONS — Total: ${fmt(totalAddonsCost)}</td>
             </tr>
             ${addons.map(a => `
               <tr>
@@ -353,7 +378,7 @@ export const exportEstimatePDF = (projectData, analysis, currency = 'NGN', unit 
       <div class="pdf-total-card">
         <div>
           <div class="pdf-total-label">ESTIMATED TOTAL PROJECT COST</div>
-          <div style="font-size: 10px; color: #78350f;">Includes Structure, Finishes, MEP, Labour${totalAddonsCost > 0 ? ', Add-ons' : ''} & Contingency</div>
+          <div style="font-size: 10px; color: #78350f;">Includes Structure, Finishes, MEP, Labour${totalCustomMaterialsCost > 0 ? ', Custom Materials' : ''}${totalAddonsCost > 0 ? ', Add-ons' : ''} & Contingency</div>
         </div>
         <div class="pdf-total-val">${fmt(costs.total)}</div>
       </div>

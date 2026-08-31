@@ -3,7 +3,7 @@
  *
  * Logic derived from standard Nigerian quantity surveying heuristics.
  * Covers both STRUCTURE (Shell) and FINISHING phases.
- * Fully supports engineer material specs, finish quality tiers, foundation soil adjustments, and engineering add-ons.
+ * Fully supports engineer material specs, custom user materials, finish quality tiers, foundation soil adjustments, and engineering add-ons.
  */
 
 import PRICING_CONFIG from '../pricing.config.json';
@@ -26,7 +26,8 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
     roofingType = 'aluminium',
     ceilingType = 'pop',
     foundationType = 'strip',
-    selectedAddons = []
+    selectedAddons = [],
+    customMaterials = []
   } = projectData;
 
   // 1. Validate and Parse Inputs
@@ -174,9 +175,35 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
     });
   }
 
-  // --- PHASE 5: CONTINGENCY & GRAND TOTAL ---
+  // --- PHASE 5: USER CUSTOM MATERIALS ---
+  const customMaterialsSummary = [];
+  let totalCustomMaterialsCost = 0;
 
-  const subTotal = directBaseCost + mepCost + laborCost + totalAddonsCost;
+  if (Array.isArray(customMaterials) && customMaterials.length > 0) {
+    customMaterials.forEach((item, index) => {
+      const name = item.name ? item.name.trim() : `Custom Material ${index + 1}`;
+      const qty = parseFloat(item.quantity) || 0;
+      const unit = item.unit || 'sqm';
+      const rate = parseFloat(item.unitPrice) || 0;
+      const lineCost = Math.ceil(qty * rate);
+
+      if (name && (qty > 0 || rate > 0)) {
+        customMaterialsSummary.push({
+          id: item.id || `cm_${index}`,
+          name,
+          unit,
+          quantity: qty,
+          unitPrice: rate,
+          lineCost
+        });
+        totalCustomMaterialsCost += lineCost;
+      }
+    });
+  }
+
+  // --- PHASE 6: CONTINGENCY & GRAND TOTAL ---
+
+  const subTotal = directBaseCost + mepCost + laborCost + totalAddonsCost + totalCustomMaterialsCost;
 
   // Deterministic variance based on project dimensions (5–10%)
   const varianceSeed = (sqm * 7 + numFloors * 13) % 100;
@@ -256,6 +283,10 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
     recommendations.push(`Ancillary engineering works total ₦${totalAddonsCost.toLocaleString()} across ${addonsSummary.length} add-ons.`);
   }
 
+  if (totalCustomMaterialsCost > 0) {
+    recommendations.push(`User custom materials add ₦${totalCustomMaterialsCost.toLocaleString()} across ${customMaterialsSummary.length} line items.`);
+  }
+
   const shortfallAmount = budgetAmount > 0 && budgetAmount < grandTotal ? (grandTotal - budgetAmount) : 0;
 
   return {
@@ -270,6 +301,8 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
     },
     addons: addonsSummary,
     totalAddonsCost,
+    customMaterials: customMaterialsSummary,
+    totalCustomMaterialsCost,
     materials: quantities,
     costs: {
       cement: costs.cement,
@@ -285,6 +318,7 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
       m_e_p: mepCost,
       labor: laborCost,
       addons: totalAddonsCost,
+      customMaterials: totalCustomMaterialsCost,
       contingency: contingencyCost,
       total: grandTotal,
     },

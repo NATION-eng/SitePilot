@@ -18,6 +18,7 @@ const defaultProjectData = {
   ceilingType: 'pop',
   foundationType: 'strip',
   selectedAddons: [],
+  customMaterials: [],
   budget: '',
   timeline: '',
   notes: ''
@@ -67,6 +68,36 @@ export const ProjectProvider = ({ children }) => {
         : [...currentAddons, addonKey];
       return { ...prev, selectedAddons: updated };
     });
+  }, [setProjectData]);
+
+  const addCustomMaterial = useCallback((item = {}) => {
+    const newItem = {
+      id: `cm_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      name: item.name || '',
+      unit: item.unit || 'sqm',
+      quantity: item.quantity !== undefined ? item.quantity : '',
+      unitPrice: item.unitPrice !== undefined ? item.unitPrice : ''
+    };
+    setProjectData(prev => ({
+      ...prev,
+      customMaterials: [...(prev.customMaterials || []), newItem]
+    }));
+  }, [setProjectData]);
+
+  const updateCustomMaterial = useCallback((id, field, value) => {
+    setProjectData(prev => ({
+      ...prev,
+      customMaterials: (prev.customMaterials || []).map(item =>
+        item.id === id ? { ...item, [field]: value } : item
+      )
+    }));
+  }, [setProjectData]);
+
+  const removeCustomMaterial = useCallback((id) => {
+    setProjectData(prev => ({
+      ...prev,
+      customMaterials: (prev.customMaterials || []).filter(item => item.id !== id)
+    }));
   }, [setProjectData]);
 
   const announce = useCallback((msg) => {
@@ -140,55 +171,69 @@ export const ProjectProvider = ({ children }) => {
         const results = calculateConstructionCosts(projectData, customPrices || materialPrices);
         if (results) {
           setAnalysisResults(results);
-          announce('Estimate recalculated with updated material rates.');
         }
       } catch (err) {
         console.error('Recalculation error:', err);
       }
     }
-  }, [projectData, materialPrices, announce]);
+  }, [projectData, materialPrices]);
 
   const resetMaterialPrices = useCallback(() => {
     setMaterialPrices(PRICING_CONFIG.materials);
+    try {
+      window.localStorage.removeItem('sitepilot-custom-prices');
+    } catch (e) { /* silent */ }
     recalculateEstimate(PRICING_CONFIG.materials);
-    announce('Material prices reset to 2026 baseline rates.');
-  }, [setMaterialPrices, recalculateEstimate, announce]);
+  }, [setMaterialPrices, recalculateEstimate]);
 
-  const currencyInfo = getCurrencyInfo(currency);
-  const unitInfo = getUnitInfo(unit);
+  const formatMoney = useCallback((amountInNGN) => {
+    return formatCurrency(amountInNGN, currency);
+  }, [currency]);
+
+  const convertMoney = useCallback((amountInNGN) => {
+    return convertCurrency(amountInNGN, currency);
+  }, [currency]);
+
+  const currencyData = getCurrencyInfo(currency);
+  const unitData = getUnitInfo(unit);
 
   const value = {
     view,
-    currentStep,
-    progress,
-    isFirstStep,
-    isLastStep,
+    setView,
     projectData,
+    updateProjectData,
+    toggleAddon,
+    addCustomMaterial,
+    updateCustomMaterial,
+    removeCustomMaterial,
     currency,
     setCurrency,
-    currencyInfo,
+    currencyData,
+    formatMoney,
+    convertMoney,
     unit,
     setUnit,
-    unitInfo,
+    unitData,
     materialPrices,
     setMaterialPrices,
     resetMaterialPrices,
     recalculateEstimate,
-    toggleAddon,
-    formatMoney: (amountInNGN) => formatCurrency(amountInNGN, currency),
-    convertMoney: (amountInNGN) => convertCurrency(amountInNGN, currency),
     analysisResults,
     isLoading,
     error,
     setError,
     announcement,
     announce,
-    updateProjectData,
-    startProject,
-    resetProject,
+    currentStep,
     nextStep,
     prevStep,
-    generateAnalysis
+    goToStep,
+    progress,
+    isFirstStep,
+    isLastStep,
+    startProject,
+    resetProject,
+    generateAnalysis,
   };
 
   return (
@@ -201,7 +246,7 @@ export const ProjectProvider = ({ children }) => {
 export const useProject = () => {
   const context = useContext(ProjectContext);
   if (!context) {
-    throw new Error('useProject must be used within ProjectProvider');
+    throw new Error('useProject must be used within a ProjectProvider');
   }
   return context;
 };

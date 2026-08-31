@@ -1,5 +1,6 @@
 import React from 'react';
 import Icon from '../ui/Icon';
+import { useProject } from '../../context/ProjectContext';
 
 const MATERIAL_META = {
   cement: { iconName: 'cement', category: 'Structure', color: '#FF6B00' },
@@ -15,7 +16,8 @@ const MATERIAL_META = {
   doors: { iconName: 'doors', category: 'Openings', color: '#9333EA' }
 };
 
-const MaterialEstimates = ({ materials }) => {
+const MaterialEstimates = ({ materials, customMaterials = [] }) => {
+  const { formatMoney } = useProject();
   if (!materials) return null;
 
   return (
@@ -40,6 +42,37 @@ const MaterialEstimates = ({ materials }) => {
             </div>
           );
         })}
+
+        {/* Custom Materials Specified by User */}
+        {Array.isArray(customMaterials) && customMaterials.length > 0 && (
+          <div className="custom-materials-takeoff-section" style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Icon name="tools" size={16} color="var(--primary)" />
+              Custom Specified Materials ({customMaterials.length})
+            </div>
+            {customMaterials.map((mat) => (
+              <div key={mat.id || mat.name} className="material-item" style={{ background: 'rgba(255, 107, 0, 0.05)' }}>
+                <div className="material-name-container">
+                  <Icon name="finishes" size={16} color="var(--primary)" />
+                  <div>
+                    <span className="material-name" style={{ fontWeight: 600 }}>{mat.name}</span>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                      @{formatMoney(mat.unitPrice)}/{mat.unit}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span className="material-quantity" style={{ fontWeight: 700 }}>
+                    {mat.quantity} {mat.unit}
+                  </span>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 600 }}>
+                    {formatMoney(mat.lineCost)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

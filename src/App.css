@@ -993,6 +993,78 @@ main:focus:not(:focus-visible) {
   gap: 1rem;
 }
 
+/* --- Custom Materials & Takeoff Items Table --- */
+.custom-mat-empty-box {
+  background: var(--bg-elevated);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.custom-mat-table-wrapper {
+  overflow-x: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.custom-mat-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.custom-mat-table th {
+  background: var(--bg-card);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border);
+}
+
+.custom-mat-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.custom-mat-table tr:last-child td {
+  border-bottom: none;
+}
+
+.custom-mat-input {
+  font-size: 0.82rem;
+  padding: 0.35rem 0.6rem;
+  width: 100%;
+}
+
+.custom-mat-del-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.custom-mat-del-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
 /* --- Responsive Breakpoints --- */
 @media (max-width: 768px) {
   .responsive-grid-3 { grid-template-columns: 1fr; }

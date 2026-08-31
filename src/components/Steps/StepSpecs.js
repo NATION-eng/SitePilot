@@ -3,11 +3,35 @@ import { useProject } from '../../context/ProjectContext';
 import Icon from '../ui/Icon';
 import PRICING_CONFIG from '../../pricing.config.json';
 
+const UNIT_OPTIONS = [
+  { value: 'sqm', label: 'sqm (m²)' },
+  { value: 'pcs', label: 'pieces' },
+  { value: 'tons', label: 'tons' },
+  { value: 'bags', label: 'bags' },
+  { value: 'drums', label: 'drums (20L)' },
+  { value: 'meters', label: 'linear meters' },
+  { value: 'sets', label: 'sets' },
+  { value: 'units', label: 'units' },
+  { value: 'lots', label: 'lots' }
+];
+
 const StepSpecs = () => {
-  const { projectData, updateProjectData, toggleAddon, nextStep, prevStep, formatMoney, materialPrices } = useProject();
+  const {
+    projectData,
+    updateProjectData,
+    toggleAddon,
+    addCustomMaterial,
+    updateCustomMaterial,
+    removeCustomMaterial,
+    nextStep,
+    prevStep,
+    formatMoney,
+    materialPrices
+  } = useProject();
 
   const currentTier = projectData.specTier || 'standard';
   const selectedAddons = projectData.selectedAddons || [];
+  const customMaterials = projectData.customMaterials || [];
   const mat = materialPrices || PRICING_CONFIG.materials;
 
   const flooringScale = (mat.tiles_sqm || PRICING_CONFIG.materials.tiles_sqm) / PRICING_CONFIG.materials.tiles_sqm;
@@ -17,7 +41,7 @@ const StepSpecs = () => {
   return (
     <section className="fade-in" aria-labelledby="step-specs-title">
       <h2 id="step-specs-title" className="section-title">Engineering & Material Specs</h2>
-      <p className="section-subtitle">Select finish quality grade, trade materials, and site infrastructure add-ons</p>
+      <p className="section-subtitle">Select finish quality grade, trade materials, site infrastructure, and add custom project materials</p>
 
       {/* 1. Specification Tier Selector */}
       <div className="specs-section">
@@ -140,7 +164,137 @@ const StepSpecs = () => {
         </div>
       </div>
 
-      {/* 3. Engineering Add-ons & Ancillary Works */}
+      {/* 3. Custom Materials & Takeoff Items Column */}
+      <div className="specs-section" style={{ marginTop: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+          <div>
+            <h3 className="specs-subheading" style={{ margin: 0 }}>
+              <Icon name="tools" size={18} color="var(--primary)" style={{ marginRight: '0.4rem' }} /> Custom Materials & Takeoff Items
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0 0' }}>
+              Add specialized engineering materials, finishes, or custom takeoff items
+            </p>
+          </div>
+          <button
+            type="button"
+            className="btn-outline btn-hover"
+            onClick={() => addCustomMaterial({ name: '', unit: 'sqm', quantity: '', unitPrice: '' })}
+            style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
+          >
+            + Add Material Item
+          </button>
+        </div>
+
+        {customMaterials.length === 0 ? (
+          <div className="custom-mat-empty-box">
+            <Icon name="tools" size={24} color="var(--text-secondary)" />
+            <p style={{ margin: '0.5rem 0 0.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              No custom materials added yet.
+            </p>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted, #64748B)' }}>
+              Click below to specify custom granite slabs, acoustic panels, custom steelwork, or any additional takeoff materials.
+            </p>
+            <button
+              type="button"
+              className="btn-secondary btn-hover"
+              onClick={() => addCustomMaterial({ name: '', unit: 'sqm', quantity: '', unitPrice: '' })}
+              style={{ marginTop: '0.75rem', fontSize: '0.8rem' }}
+            >
+              + Add Custom Material
+            </button>
+          </div>
+        ) : (
+          <div className="custom-mat-table-wrapper">
+            <table className="custom-mat-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '38%' }}>Material Description</th>
+                  <th style={{ width: '18%' }}>Unit</th>
+                  <th style={{ width: '14%' }}>Quantity</th>
+                  <th style={{ width: '18%' }}>Unit Price (₦)</th>
+                  <th style={{ width: '12%', textAlign: 'right' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {customMaterials.map((item, idx) => {
+                  const qty = parseFloat(item.quantity) || 0;
+                  const price = parseFloat(item.unitPrice) || 0;
+                  const lineTotal = qty * price;
+
+                  return (
+                    <tr key={item.id || idx}>
+                      <td>
+                        <input
+                          type="text"
+                          className="input-base custom-mat-input"
+                          placeholder="e.g., Italian Marble Slabs"
+                          value={item.name}
+                          onChange={(e) => updateCustomMaterial(item.id, 'name', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <select
+                          className="input-base custom-mat-input"
+                          value={item.unit || 'sqm'}
+                          onChange={(e) => updateCustomMaterial(item.id, 'unit', e.target.value)}
+                        >
+                          {UNIT_OPTIONS.map((u) => (
+                            <option key={u.value} value={u.value}>{u.label}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          min="0"
+                          step="any"
+                          className="input-base custom-mat-input"
+                          placeholder="0"
+                          value={item.quantity}
+                          onChange={(e) => updateCustomMaterial(item.id, 'quantity', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                          <span style={{ position: 'absolute', left: '8px', color: 'var(--primary)', fontWeight: 'bold', fontSize: '0.8rem' }}>₦</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="50"
+                            className="input-base custom-mat-input"
+                            style={{ paddingLeft: '1.4rem' }}
+                            placeholder="0"
+                            value={item.unitPrice}
+                            onChange={(e) => updateCustomMaterial(item.id, 'unitPrice', e.target.value)}
+                          />
+                        </div>
+                        {lineTotal > 0 && (
+                          <div style={{ fontSize: '0.7rem', color: 'var(--primary)', marginTop: '2px', fontWeight: 600 }}>
+                            Total: {formatMoney(lineTotal)}
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          className="custom-mat-del-btn"
+                          onClick={() => removeCustomMaterial(item.id)}
+                          title="Remove material"
+                          aria-label={`Remove ${item.name || 'material'}`}
+                        >
+                          ✕
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* 4. Engineering Add-ons & Ancillary Works */}
       <div className="specs-section" style={{ marginTop: '2rem' }}>
         <h3 className="specs-subheading">
           <Icon name="mep" size={18} color="var(--primary)" style={{ marginRight: '0.4rem' }} /> Engineering Add-ons & Site Infrastructure (Optional)
