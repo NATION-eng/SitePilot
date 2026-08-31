@@ -1,14 +1,28 @@
+.backdropOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(5, 8, 14, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 998;
+  animation: fadeIn 0.2s ease-out;
+}
+
 .dropdownContainer {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
   width: 480px;
   max-width: calc(100vw - 2rem);
-  background: var(--bg-card, #141921);
+  background: #12171F !important;
+  opacity: 1 !important;
   border: 1px solid var(--border, #2A3140);
   border-radius: 12px;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.8), 0 4px 12px rgba(0, 0, 0, 0.4);
-  z-index: 1000;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9), 0 4px 16px rgba(0, 0, 0, 0.5);
+  z-index: 999;
   display: flex;
   flex-direction: column;
   animation: dropdownSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -32,7 +46,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--bg-surface, #0D1117);
+  background: #0A0E14 !important;
 }
 
 .titleGroup {
@@ -72,7 +86,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.25rem;
-  background: var(--bg-elevated, #1C2128);
+  background: #181E27 !important;
   border-bottom: 1px solid var(--border, #2A3140);
   flex-wrap: wrap;
 }
@@ -89,7 +103,7 @@
 }
 
 .pillBtn {
-  background: var(--bg-card, #141921);
+  background: #12171F !important;
   border: 1px solid var(--border, #2A3140);
   color: var(--text-primary, #E8ECF0);
   padding: 0.2rem 0.5rem;
@@ -120,6 +134,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  background: #12171F !important;
 }
 
 .row {
@@ -127,7 +142,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.45rem 0.6rem;
-  background: var(--bg-elevated, #1C2128);
+  background: #181E27 !important;
   border: 1px solid var(--border, #2A3140);
   border-radius: 6px;
   gap: 0.6rem;
@@ -160,7 +175,7 @@
 .inputBox {
   display: flex;
   align-items: center;
-  background: var(--bg-card, #141921);
+  background: #0A0E14 !important;
   border: 1px solid var(--border, #2A3140);
   border-radius: 5px;
   padding: 0.2rem 0.4rem;
@@ -200,7 +215,7 @@
 .footer {
   padding: 0.75rem 1.25rem;
   border-top: 1px solid var(--border, #2A3140);
-  background: var(--bg-surface, #0D1117);
+  background: #0A0E14 !important;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -227,7 +242,7 @@
 }
 
 .btnCancel {
-  background: var(--bg-elevated, #1C2128);
+  background: #181E27 !important;
   border: 1px solid var(--border, #2A3140);
   color: var(--text-primary, #E8ECF0);
   padding: 0.35rem 0.75rem;

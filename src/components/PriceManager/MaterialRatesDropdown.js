@@ -33,15 +33,9 @@ const MaterialRatesDropdown = ({ isOpen, onClose }) => {
     }
   }, [isOpen, materialPrices]);
 
-  // Handle click outside and Escape key
+  // Handle Escape key
   useEffect(() => {
     if (!isOpen) return;
-
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        onClose();
-      }
-    };
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -49,11 +43,8 @@ const MaterialRatesDropdown = ({ isOpen, onClose }) => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleKeyDown);
-
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
@@ -89,85 +80,101 @@ const MaterialRatesDropdown = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className={styles.dropdownContainer} ref={dropdownRef} role="dialog" aria-label="Material Rates Menu">
-      {/* Dropdown Header */}
-      <div className={styles.header}>
-        <div className={styles.titleGroup}>
-          <Icon name="drafting" size={18} color="var(--primary)" />
-          <div>
-            <div className={styles.title}>Material Market Rates</div>
-            <div className={styles.subtitle}>Adjust unit prices (₦ NGN)</div>
+    <>
+      {/* Dimmed Focus Backdrop that completely blocks out the home page */}
+      <div
+        className={styles.backdropOverlay}
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Solid Opaque Dropdown Menu anchored right below button */}
+      <div
+        className={styles.dropdownContainer}
+        ref={dropdownRef}
+        role="dialog"
+        aria-label="Material Rates Menu"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Dropdown Header */}
+        <div className={styles.header}>
+          <div className={styles.titleGroup}>
+            <Icon name="drafting" size={18} color="var(--primary)" />
+            <div>
+              <div className={styles.title}>Material Market Rates</div>
+              <div className={styles.subtitle}>Adjust unit prices (₦ NGN)</div>
+            </div>
+          </div>
+          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close menu">
+            ✕
+          </button>
+        </div>
+
+        {/* Inflation Adjuster Bar */}
+        <div className={styles.inflationBar}>
+          <span className={styles.inflationLabel}>Quick Market Inflation:</span>
+          <div className={styles.inflationBtns}>
+            <button type="button" className={styles.pillBtn} onClick={() => handleApplyMultiplier(-5)}>-5%</button>
+            <button type="button" className={styles.pillBtn} onClick={() => handleApplyMultiplier(5)}>+5%</button>
+            <button type="button" className={styles.pillBtn} onClick={() => handleApplyMultiplier(10)}>+10%</button>
+            <button type="button" className={styles.pillBtn} onClick={() => handleApplyMultiplier(20)}>+20%</button>
+          </div>
+          {appliedAdjustment !== 0 && (
+            <span className={styles.badge}>
+              {appliedAdjustment > 0 ? `+${appliedAdjustment}%` : `${appliedAdjustment}%`}
+            </span>
+          )}
+        </div>
+
+        {/* Material Rates List */}
+        <div className={styles.listContainer}>
+          {MATERIAL_FIELDS.map(({ key, label, icon }) => {
+            const price = localPrices[key] || 0;
+            return (
+              <div key={key} className={styles.row}>
+                <div className={styles.rowLabel}>
+                  <Icon name={icon} size={16} color="var(--primary)" />
+                  <span className={styles.labelText} title={label}>{label}</span>
+                </div>
+                <div className={styles.rowInputGroup}>
+                  <div className={styles.inputBox}>
+                    <span className={styles.currPrefix}>₦</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="50"
+                      className={styles.inputField}
+                      value={price}
+                      onChange={e => handlePriceChange(key, e.target.value)}
+                    />
+                  </div>
+                  {currency !== 'NGN' && (
+                    <span className={styles.convertedText}>
+                      ~{formatMoney(price)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Dropdown Footer Actions */}
+        <div className={styles.footer}>
+          <button type="button" className={styles.btnReset} onClick={handleReset} title="Restore 2026 baseline prices">
+            Reset Base
+          </button>
+          <div className={styles.footerRight}>
+            <button type="button" className={styles.btnCancel} onClick={onClose}>
+              Cancel
+            </button>
+            <button type="button" className={styles.btnApply} onClick={handleSave}>
+              Apply Rates
+            </button>
           </div>
         </div>
-        <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close menu">
-          ✕
-        </button>
       </div>
-
-      {/* Inflation Adjuster Bar */}
-      <div className={styles.inflationBar}>
-        <span className={styles.inflationLabel}>Quick Market Inflation:</span>
-        <div className={styles.inflationBtns}>
-          <button type="button" className={styles.pillBtn} onClick={() => handleApplyMultiplier(-5)}>-5%</button>
-          <button type="button" className={styles.pillBtn} onClick={() => handleApplyMultiplier(5)}>+5%</button>
-          <button type="button" className={styles.pillBtn} onClick={() => handleApplyMultiplier(10)}>+10%</button>
-          <button type="button" className={styles.pillBtn} onClick={() => handleApplyMultiplier(20)}>+20%</button>
-        </div>
-        {appliedAdjustment !== 0 && (
-          <span className={styles.badge}>
-            {appliedAdjustment > 0 ? `+${appliedAdjustment}%` : `${appliedAdjustment}%`}
-          </span>
-        )}
-      </div>
-
-      {/* Material Rates List */}
-      <div className={styles.listContainer}>
-        {MATERIAL_FIELDS.map(({ key, label, icon }) => {
-          const price = localPrices[key] || 0;
-          return (
-            <div key={key} className={styles.row}>
-              <div className={styles.rowLabel}>
-                <Icon name={icon} size={16} color="var(--primary)" />
-                <span className={styles.labelText} title={label}>{label}</span>
-              </div>
-              <div className={styles.rowInputGroup}>
-                <div className={styles.inputBox}>
-                  <span className={styles.currPrefix}>₦</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="50"
-                    className={styles.inputField}
-                    value={price}
-                    onChange={e => handlePriceChange(key, e.target.value)}
-                  />
-                </div>
-                {currency !== 'NGN' && (
-                  <span className={styles.convertedText}>
-                    ~{formatMoney(price)}
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Dropdown Footer Actions */}
-      <div className={styles.footer}>
-        <button type="button" className={styles.btnReset} onClick={handleReset} title="Restore 2026 baseline prices">
-          Reset Base
-        </button>
-        <div className={styles.footerRight}>
-          <button type="button" className={styles.btnCancel} onClick={onClose}>
-            Cancel
-          </button>
-          <button type="button" className={styles.btnApply} onClick={handleSave}>
-            Apply Rates
-          </button>
-        </div>
-      </div>
-    </div>
+    </>
   );
 };
 
