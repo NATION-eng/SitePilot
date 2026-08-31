@@ -50,21 +50,24 @@ export const calculateConstructionCosts = (projectData, customPrices = null) => 
     PRICING_CONFIG.materialOptions.foundation.strip;
   const foundationMultiplier = foundationConfig.multiplier || 1.0;
 
-  // Specific Material Unit Rates
+  // Proportional scaling for specific material overrides based on user custom price adjustments
   const flooringConfig =
     PRICING_CONFIG.materialOptions.flooring[flooringType] ||
     PRICING_CONFIG.materialOptions.flooring.ceramic;
-  const activeFlooringRate = mat.tiles_sqm ? mat.tiles_sqm : flooringConfig.rate;
+  const flooringScale = (mat.tiles_sqm || PRICING_CONFIG.materials.tiles_sqm) / PRICING_CONFIG.materials.tiles_sqm;
+  const activeFlooringRate = Math.round(flooringConfig.rate * flooringScale);
 
   const roofingConfig =
     PRICING_CONFIG.materialOptions.roofing[roofingType] ||
     PRICING_CONFIG.materialOptions.roofing.aluminium;
-  const activeRoofingRate = mat.roofing_sqm ? mat.roofing_sqm : roofingConfig.rate;
+  const roofingScale = (mat.roofing_sqm || PRICING_CONFIG.materials.roofing_sqm) / PRICING_CONFIG.materials.roofing_sqm;
+  const activeRoofingRate = Math.round(roofingConfig.rate * roofingScale);
 
   const ceilingConfig =
     PRICING_CONFIG.materialOptions.ceiling[ceilingType] ||
     PRICING_CONFIG.materialOptions.ceiling.pop;
-  const activeCeilingRate = mat.pop_sqm ? mat.pop_sqm : ceilingConfig.rate;
+  const ceilingScale = (mat.pop_sqm || PRICING_CONFIG.materials.pop_sqm) / PRICING_CONFIG.materials.pop_sqm;
+  const activeCeilingRate = Math.round(ceilingConfig.rate * ceilingScale);
 
   // Type Multiplier (Residential: 1.0, Commercial: 1.20, Industrial: 1.10)
   const typeMultiplier = PRICING_CONFIG.typeMultipliers[projectType] || 1.0;

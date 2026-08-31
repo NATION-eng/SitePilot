@@ -4,10 +4,15 @@ import Icon from '../ui/Icon';
 import PRICING_CONFIG from '../../pricing.config.json';
 
 const StepSpecs = () => {
-  const { projectData, updateProjectData, toggleAddon, nextStep, prevStep, formatMoney } = useProject();
+  const { projectData, updateProjectData, toggleAddon, nextStep, prevStep, formatMoney, materialPrices } = useProject();
 
   const currentTier = projectData.specTier || 'standard';
   const selectedAddons = projectData.selectedAddons || [];
+  const mat = materialPrices || PRICING_CONFIG.materials;
+
+  const flooringScale = (mat.tiles_sqm || PRICING_CONFIG.materials.tiles_sqm) / PRICING_CONFIG.materials.tiles_sqm;
+  const roofingScale = (mat.roofing_sqm || PRICING_CONFIG.materials.roofing_sqm) / PRICING_CONFIG.materials.roofing_sqm;
+  const ceilingScale = (mat.pop_sqm || PRICING_CONFIG.materials.pop_sqm) / PRICING_CONFIG.materials.pop_sqm;
 
   return (
     <section className="fade-in" aria-labelledby="step-specs-title">
@@ -70,7 +75,7 @@ const StepSpecs = () => {
             >
               {Object.entries(PRICING_CONFIG.materialOptions.flooring).map(([k, opt]) => (
                 <option key={k} value={k}>
-                  {opt.name} — ~{formatMoney(opt.rate)}/sqm
+                  {opt.name} — ~{formatMoney(Math.round(opt.rate * flooringScale))}/sqm
                 </option>
               ))}
             </select>
@@ -89,7 +94,7 @@ const StepSpecs = () => {
             >
               {Object.entries(PRICING_CONFIG.materialOptions.roofing).map(([k, opt]) => (
                 <option key={k} value={k}>
-                  {opt.name} — ~{formatMoney(opt.rate)}/sqm
+                  {opt.name} — ~{formatMoney(Math.round(opt.rate * roofingScale))}/sqm
                 </option>
               ))}
             </select>
@@ -108,7 +113,7 @@ const StepSpecs = () => {
             >
               {Object.entries(PRICING_CONFIG.materialOptions.ceiling).map(([k, opt]) => (
                 <option key={k} value={k}>
-                  {opt.name} — ~{formatMoney(opt.rate)}/sqm
+                  {opt.name} — ~{formatMoney(Math.round(opt.rate * ceilingScale))}/sqm
                 </option>
               ))}
             </select>

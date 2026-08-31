@@ -168,6 +168,11 @@
   color: var(--text-secondary, #8B95A5);
 }
 
+.convertedTag {
+  color: var(--primary, #FF6B00);
+  font-weight: 600;
+}
+
 .inputWrapper {
   display: flex;
   align-items: center;

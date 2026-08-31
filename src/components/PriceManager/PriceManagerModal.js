@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Icon from '../ui/Icon';
 import PRICING_CONFIG from '../../pricing.config.json';
 import { useProject } from '../../context/ProjectContext';
@@ -20,9 +20,17 @@ const MATERIAL_FIELDS = [
 ];
 
 const PriceManagerModal = ({ isOpen, onClose }) => {
-  const { materialPrices, setMaterialPrices, resetMaterialPrices, recalculateEstimate } = useProject();
+  const { materialPrices, setMaterialPrices, resetMaterialPrices, recalculateEstimate, currency, formatMoney } = useProject();
   const [localPrices, setLocalPrices] = useState(materialPrices || PRICING_CONFIG.materials);
   const [appliedAdjustment, setAppliedAdjustment] = useState(0);
+
+  // Sync state whenever modal is opened or materialPrices change
+  useEffect(() => {
+    if (isOpen) {
+      setLocalPrices(materialPrices || PRICING_CONFIG.materials);
+      setAppliedAdjustment(0);
+    }
+  }, [isOpen, materialPrices]);
 
   if (!isOpen) return null;
 
@@ -93,7 +101,7 @@ const PriceManagerModal = ({ isOpen, onClose }) => {
         </div>
 
         <p className={styles.subtitle}>
-          Inspect and adjust base unit rates (₦ NGN). Changes update material calculations and BOQ reports immediately.
+          Inspect and adjust base unit rates (in ₦ NGN). Real-time calculations and BOQ reports update immediately upon saving.
         </p>
 
         {/* Quick Multiplier Bar */}
@@ -115,28 +123,36 @@ const PriceManagerModal = ({ isOpen, onClose }) => {
         {/* Materials Table / Grid */}
         <div className={styles.materialsScroll}>
           <div className={styles.materialsGrid}>
-            {MATERIAL_FIELDS.map(({ key, label, unit, icon }) => (
-              <div key={key} className={styles.materialRow}>
-                <div className={styles.materialMeta}>
-                  <Icon name={icon} size={18} color="var(--primary)" />
-                  <div>
-                    <div className={styles.matLabel}>{label}</div>
-                    <div className={styles.matUnit}>{unit}</div>
+            {MATERIAL_FIELDS.map(({ key, label, unit, icon }) => {
+              const currentPrice = localPrices[key] || 0;
+              return (
+                <div key={key} className={styles.materialRow}>
+                  <div className={styles.materialMeta}>
+                    <Icon name={icon} size={18} color="var(--primary)" />
+                    <div>
+                      <div className={styles.matLabel}>{label}</div>
+                      <div className={styles.matUnit}>
+                        {unit}
+                        {currency !== 'NGN' && (
+                          <span className={styles.convertedTag}> (~{formatMoney(currentPrice)})</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.inputWrapper}>
+                    <span className={styles.currencyPrefix}>₦</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="50"
+                      className={styles.priceInput}
+                      value={currentPrice}
+                      onChange={e => handlePriceChange(key, e.target.value)}
+                    />
                   </div>
                 </div>
-                <div className={styles.inputWrapper}>
-                  <span className={styles.currencyPrefix}>₦</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="50"
-                    className={styles.priceInput}
-                    value={localPrices[key] || 0}
-                    onChange={e => handlePriceChange(key, e.target.value)}
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
