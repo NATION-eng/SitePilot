@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useProject } from '../context/ProjectContext';
-import PriceManagerModal from './PriceManager/PriceManagerModal';
+import MaterialRatesDropdown from './PriceManager/MaterialRatesDropdown';
 import Icon from './ui/Icon';
 import PRICING_CONFIG from '../pricing.config.json';
 
 const Header = () => {
   const { currency, setCurrency, unit, setUnit } = useProject();
-  const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+  const [isRatesDropdownOpen, setIsRatesDropdownOpen] = useState(false);
 
   return (
     <header className="header fade-in">
@@ -20,16 +20,28 @@ const Header = () => {
           </div>
 
           <div className="header-controls">
-            {/* Material Rates Manager Trigger */}
-            <button
-              type="button"
-              className="rates-btn btn-hover"
-              onClick={() => setIsPriceModalOpen(true)}
-              title="Inspect and edit live material unit prices & market inflation rates"
-            >
-              <Icon name="drafting" size={14} color="var(--primary)" style={{ marginRight: '0.35rem' }} />
-              <span>Material Rates</span>
-            </button>
+            {/* Material Rates Dropdown Trigger */}
+            <div className="rates-dropdown-wrapper" style={{ position: 'relative' }}>
+              <button
+                type="button"
+                className={`rates-btn btn-hover ${isRatesDropdownOpen ? 'rates-btn-active' : ''}`}
+                onClick={() => setIsRatesDropdownOpen(prev => !prev)}
+                aria-expanded={isRatesDropdownOpen}
+                aria-haspopup="dialog"
+                title="Inspect and edit live material unit prices & market inflation rates"
+              >
+                <Icon name="drafting" size={14} color="var(--primary)" style={{ marginRight: '0.35rem' }} />
+                <span>Material Rates</span>
+                <span style={{ fontSize: '0.7rem', marginLeft: '0.35rem', opacity: 0.7 }}>
+                  {isRatesDropdownOpen ? '▲' : '▼'}
+                </span>
+              </button>
+
+              <MaterialRatesDropdown
+                isOpen={isRatesDropdownOpen}
+                onClose={() => setIsRatesDropdownOpen(false)}
+              />
+            </div>
 
             {/* Currency Selector */}
             <div className="control-group">
@@ -68,11 +80,6 @@ const Header = () => {
           </div>
         </div>
       </div>
-
-      <PriceManagerModal
-        isOpen={isPriceModalOpen}
-        onClose={() => setIsPriceModalOpen(false)}
-      />
     </header>
   );
 };

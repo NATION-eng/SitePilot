@@ -202,9 +202,10 @@ main:focus:not(:focus-visible) {
   cursor: pointer;
   transition: all 0.2s ease;
 }
-.rates-btn:hover {
+.rates-btn:hover,
+.rates-btn-active {
   border-color: var(--primary);
-  background: rgba(255, 107, 0, 0.1);
+  background: rgba(255, 107, 0, 0.15);
   color: var(--primary);
 }
 
