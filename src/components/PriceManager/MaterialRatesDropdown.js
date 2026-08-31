@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import Icon from '../ui/Icon';
 import PRICING_CONFIG from '../../pricing.config.json';
 import { useProject } from '../../context/ProjectContext';
@@ -19,19 +20,28 @@ const MATERIAL_FIELDS = [
   { key: 'window_sqm', label: 'Aluminium Window (sqm)', icon: 'windows' }
 ];
 
-const MaterialRatesDropdown = ({ isOpen, onClose }) => {
+const MaterialRatesDropdown = ({ isOpen, onClose, anchorRef }) => {
   const { materialPrices, setMaterialPrices, resetMaterialPrices, recalculateEstimate, currency, formatMoney } = useProject();
   const [localPrices, setLocalPrices] = useState(materialPrices || PRICING_CONFIG.materials);
   const [appliedAdjustment, setAppliedAdjustment] = useState(0);
-  const dropdownRef = useRef(null);
+  const [coords, setCoords] = useState({ top: 80, right: 24 });
+  const modalRef = useRef(null);
 
-  // Sync state whenever opened
+  // Sync state & compute positioning relative to viewport
   useEffect(() => {
     if (isOpen) {
       setLocalPrices(materialPrices || PRICING_CONFIG.materials);
       setAppliedAdjustment(0);
+
+      if (anchorRef?.current) {
+        const rect = anchorRef.current.getBoundingClientRect();
+        // Position below button, aligning to right edge if near screen boundary
+        const top = rect.bottom + 8;
+        const left = Math.max(16, Math.min(rect.left, window.innerWidth - 500));
+        setCoords({ top, left });
+      }
     }
-  }, [isOpen, materialPrices]);
+  }, [isOpen, materialPrices, anchorRef]);
 
   // Handle Escape key
   useEffect(() => {
@@ -79,21 +89,26 @@ const MaterialRatesDropdown = ({ isOpen, onClose }) => {
     setAppliedAdjustment(0);
   };
 
-  return (
-    <>
-      {/* Dimmed Focus Backdrop that completely blocks out the home page */}
+  const content = (
+    <div className={styles.portalWrapper}>
+      {/* Full-screen dark backdrop overlay that dims and completely blocks out the page */}
       <div
         className={styles.backdropOverlay}
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Solid Opaque Dropdown Menu anchored right below button */}
+      {/* Solid Opaque Material Rates Panel */}
       <div
         className={styles.dropdownContainer}
-        ref={dropdownRef}
+        ref={modalRef}
         role="dialog"
+        aria-modal="true"
         aria-label="Material Rates Menu"
+        style={{
+          top: `${coords.top}px`,
+          left: `${coords.left}px`
+        }}
         onClick={e => e.stopPropagation()}
       >
         {/* Dropdown Header */}
@@ -174,8 +189,12 @@ const MaterialRatesDropdown = ({ isOpen, onClose }) => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
+
+  return typeof document !== 'undefined'
+    ? ReactDOM.createPortal(content, document.body)
+    : null;
 };
 
 export default MaterialRatesDropdown;

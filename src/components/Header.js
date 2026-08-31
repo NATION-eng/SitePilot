@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useProject } from '../context/ProjectContext';
 import MaterialRatesDropdown from './PriceManager/MaterialRatesDropdown';
 import Icon from './ui/Icon';
@@ -7,6 +7,7 @@ import PRICING_CONFIG from '../pricing.config.json';
 const Header = () => {
   const { currency, setCurrency, unit, setUnit } = useProject();
   const [isRatesDropdownOpen, setIsRatesDropdownOpen] = useState(false);
+  const ratesBtnRef = useRef(null);
 
   return (
     <header className="header fade-in">
@@ -23,6 +24,7 @@ const Header = () => {
             {/* Material Rates Dropdown Trigger */}
             <div className="rates-dropdown-wrapper" style={{ position: 'relative' }}>
               <button
+                ref={ratesBtnRef}
                 type="button"
                 className={`rates-btn btn-hover ${isRatesDropdownOpen ? 'rates-btn-active' : ''}`}
                 onClick={() => setIsRatesDropdownOpen(prev => !prev)}
@@ -39,6 +41,7 @@ const Header = () => {
 
               <MaterialRatesDropdown
                 isOpen={isRatesDropdownOpen}
+                anchorRef={ratesBtnRef}
                 onClose={() => setIsRatesDropdownOpen(false)}
               />
             </div>

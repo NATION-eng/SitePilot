@@ -1,28 +1,36 @@
+.portalWrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99999;
+  pointer-events: auto;
+}
+
 .backdropOverlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(5, 8, 14, 0.75);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  z-index: 998;
+  background: rgba(5, 8, 14, 0.8);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: 100000;
   animation: fadeIn 0.2s ease-out;
 }
 
 .dropdownContainer {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
+  position: fixed;
   width: 480px;
   max-width: calc(100vw - 2rem);
   background: #12171F !important;
   opacity: 1 !important;
   border: 1px solid var(--border, #2A3140);
   border-radius: 12px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9), 0 4px 16px rgba(0, 0, 0, 0.5);
-  z-index: 999;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.95), 0 8px 24px rgba(0, 0, 0, 0.6);
+  z-index: 100001;
   display: flex;
   flex-direction: column;
   animation: dropdownSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);

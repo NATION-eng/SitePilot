@@ -119,6 +119,8 @@ main:focus:not(:focus-visible) {
 
 /* --- Header & Header Controls --- */
 .header {
+  position: relative;
+  z-index: 100;
   padding: 1.5rem 0;
   border-bottom: 2px solid var(--border);
   background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-surface) 100%);
