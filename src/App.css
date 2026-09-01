@@ -1271,27 +1271,115 @@ main:focus:not(:focus-visible) {
   color: var(--text-secondary);
 }
 
-/* --- Responsive Breakpoints --- */
+/* --- Multi-Device & PWA Responsive Breakpoints --- */
+
+/* App & Body Safe Area Insets for Mobile / Notched Devices */
+.app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+@media (max-width: 1024px) {
+  .container {
+    max-width: 100%;
+    padding: 0 1.25rem;
+  }
+}
+
 @media (max-width: 768px) {
   .responsive-grid-3 { grid-template-columns: 1fr; }
-  .responsive-grid-2 { grid-template-columns: 1fr; gap: 1.5rem; }
+  .responsive-grid-2 { grid-template-columns: 1fr; gap: 1.25rem; }
   .responsive-form-row { grid-template-columns: 1fr; }
-  .header-content { flex-direction: column; gap: 1rem; align-items: flex-start; }
-  .header-controls { width: 100%; justify-content: space-between; }
-  .container { padding: 0 1rem; }
-  .hero-title { font-size: 2.2rem; line-height: 1.2; }
-  .form-card { padding: 2rem 1.25rem; }
-  .total-cost-amount { font-size: 1.8rem; }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 0.85rem;
+    align-items: stretch;
+  }
+  
+  .header-controls {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+  }
+
+  .header-badge {
+    display: none;
+  }
+
+  .container { padding: 0 0.85rem; }
+  .hero-title { font-size: 2.1rem; line-height: 1.2; }
+  .form-card { padding: 1.5rem 1rem; border-radius: 12px; }
+  .total-cost-amount { font-size: 1.7rem; }
   .results-grid { grid-template-columns: 1fr; }
-  .results-actions { flex-direction: column; }
-  .results-actions button { width: 100%; }
+  .results-actions { flex-direction: column; gap: 0.6rem; }
+  .results-actions button { width: 100%; min-height: 44px; }
 }
 
 @media (max-width: 480px) {
-  .hero-title { font-size: 1.75rem; }
-  .button-group { flex-direction: column; }
+  .hero-title { font-size: 1.65rem; }
+  .hero-subtitle { font-size: 0.95rem; }
+  .section-title { font-size: 1.35rem; }
+  .section-subtitle { font-size: 0.82rem; }
+  
+  .button-group {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
   .button-group .btn-primary,
-  .button-group .btn-secondary { width: 100%; }
-  .hero-actions { flex-direction: column; align-items: center; }
-  .header-controls { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .button-group .btn-secondary {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  .hero-actions button {
+    width: 100%;
+  }
+
+  .specs-pills-container {
+    gap: 0.35rem;
+  }
+  .spec-pill-item {
+    font-size: 0.72rem;
+    padding: 0.25rem 0.55rem;
+  }
+
+  .custom-mat-table-wrapper {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .header-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+  }
+  .header-controls > * {
+    width: 100%;
+  }
+  .header-controls .rates-dropdown-wrapper button,
+  .header-controls > button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 360px) {
+  .hero-title { font-size: 1.45rem; }
+  .header-controls {
+    grid-template-columns: 1fr;
+  }
 }
