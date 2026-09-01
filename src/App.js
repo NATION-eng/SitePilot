@@ -5,6 +5,7 @@ import Hero from './components/Hero';
 import FormContainer from './components/FormContainer';
 import Results from './components/Results/Results';
 import SEO from './components/SEO';
+import OfflineBanner from './components/PWA/OfflineBanner';
 import Icon from './components/ui/Icon';
 import { useProject } from './context/ProjectContext';
 
@@ -39,6 +40,7 @@ function App() {
   return (
     <div className="app">
       <SEO title={seo.title} description={seo.description} />
+      <OfflineBanner />
       
       {/* Targeted screen reader announcement channel */}
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">

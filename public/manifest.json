@@ -1,0 +1,52 @@
+{
+  "short_name": "SitePilot",
+  "name": "SitePilot - Construction Cost Intelligence",
+  "description": "Smart pre-construction cost estimator, bill of quantities (BOQ) generator, and Nigerian regional pricing intelligence.",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0A0E14",
+  "theme_color": "#FF6B00",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": [
+    "productivity",
+    "business",
+    "utilities"
+  ],
+  "shortcuts": [
+    {
+      "name": "New Estimate",
+      "short_name": "Estimate",
+      "description": "Start a new construction cost estimate",
+      "url": "/?action=new",
+      "icons": [{ "src": "/icons/icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Material Rates",
+      "short_name": "Rates",
+      "description": "Inspect and edit live material unit prices",
+      "url": "/?action=rates",
+      "icons": [{ "src": "/icons/icon-192.svg", "sizes": "192x192" }]
+    }
+  ]
+}

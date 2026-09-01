@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useProject } from '../context/ProjectContext';
 import MaterialRatesDropdown from './PriceManager/MaterialRatesDropdown';
 import ProjectHistoryDrawer from './Portfolio/ProjectHistoryDrawer';
+import InstallPWAButton from './PWA/InstallPWAButton';
 import Icon from './ui/Icon';
 import PRICING_CONFIG from '../pricing.config.json';
 
@@ -23,6 +24,9 @@ const Header = () => {
           </div>
 
           <div className="header-controls">
+            {/* Install PWA Button */}
+            <InstallPWAButton />
+
             {/* Project Portfolio Drawer Button */}
             <button
               type="button"

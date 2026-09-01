@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="pwaGrad192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B00" />
+      <stop offset="100%" stop-color="#CC5500" />
+    </linearGradient>
+    <filter id="pwaShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+  <rect width="192" height="192" rx="42" fill="#0A0E14" />
+  <rect x="14" y="14" width="164" height="164" rx="34" fill="url(#pwaGrad192)" filter="url(#pwaShadow)" />
+  <!-- Blueprint Construction Compass / Pilot Symbol -->
+  <g fill="#FFFFFF">
+    <path d="M64 136V56h24c16 0 28 10 28 24 0 10-6 19-16 23l19 33H95l-15-28H76v28H64zm12-40h12c9 0 15-4.5 15-12s-6-12-15-12H76v24z" />
+    <circle cx="132" cy="62" r="9" fill="#00D9A3" />
+    <path d="M120 126l12-22 12 22h-24z" fill="#FFD700" />
+  </g>
+</svg>
