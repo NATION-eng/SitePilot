@@ -26,12 +26,14 @@ const Recommendations = ({ recommendations }) => {
       <h3 className="result-card-title">
         <Icon name="lightbulb" size={22} color="var(--primary)" style={{ marginRight: '0.4rem' }} /> Expert Recommendations
       </h3>
-      {displayRecs.map((rec, idx) => (
-        <div key={idx} className="material-item">
-          <span className="rec-number">{idx + 1}.</span>
-          <span className="recommendation-text">{rec}</span>
-        </div>
-      ))}
+      <div className="recommendations-list" style={{ display: 'flex', flexDirection: 'column' }}>
+        {displayRecs.map((rec, idx) => (
+          <div key={idx} className="rec-item">
+            <span className="rec-number">{idx + 1}.</span>
+            <span className="recommendation-text">{rec}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

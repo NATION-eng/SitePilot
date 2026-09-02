@@ -30,14 +30,22 @@ const RiskAssessment = ({ risk }) => {
       <div className={`risk-badge risk-${(risk.level || 'medium').toLowerCase()}`}>
         {risk.level} Risk
       </div>
-      <div className="material-item">
-        <span className="risk-section-label">Budget Evaluation</span>
+
+      <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.85rem 1rem' }}>
+          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.4rem' }}>
+            <Icon name="coins" size={15} color="var(--primary)" /> Budget Evaluation
+          </div>
+          <p className="risk-description" style={{ margin: 0, fontSize: '0.86rem', lineHeight: '1.5' }}>{dynamicBudgetRisk}</p>
+        </div>
+
+        <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.85rem 1rem' }}>
+          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.4rem' }}>
+            <Icon name="clock" size={15} color="var(--primary)" /> Timeline Evaluation
+          </div>
+          <p className="risk-description" style={{ margin: 0, fontSize: '0.86rem', lineHeight: '1.5' }}>{risk.timelineRisk}</p>
+        </div>
       </div>
-      <p className="risk-description">{dynamicBudgetRisk}</p>
-      <div className="material-item">
-        <span className="risk-section-label">Timeline Evaluation</span>
-      </div>
-      <p className="risk-description">{risk.timelineRisk}</p>
     </div>
   );
 };
