@@ -113,17 +113,19 @@ const Results = () => {
               <h3 className="result-card-title">
                 <Icon name="mep" size={22} color="var(--primary)" style={{ marginRight: '0.4rem' }} /> Selected Site Infrastructure & Add-ons
               </h3>
-              <div className="materials-list">
+              <div className="addons-list">
                 {addons.map((addon) => (
-                  <div key={addon.key} className="material-item">
-                    <div className="material-name-container">
-                      <Icon name={addon.icon || 'mep'} size={18} color="var(--primary)" />
-                      <div>
-                        <div className="material-name">{addon.name}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{addon.category}</div>
+                  <div key={addon.key} className="addon-row">
+                    <div className="addon-main">
+                      <div className="addon-icon-badge">
+                        <Icon name={addon.icon || 'mep'} size={18} color="var(--primary)" />
+                      </div>
+                      <div className="addon-details">
+                        <div className="addon-title">{addon.name}</div>
+                        <div className="addon-tag">{addon.category}</div>
                       </div>
                     </div>
-                    <span className="material-quantity">{formatMoney(addon.cost)}</span>
+                    <div className="addon-amount">{formatMoney(addon.cost)}</div>
                   </div>
                 ))}
               </div>

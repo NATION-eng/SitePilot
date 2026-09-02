@@ -51,21 +51,23 @@ const MaterialEstimates = ({ materials, customMaterials = [] }) => {
               Custom Specified Materials ({customMaterials.length})
             </div>
             {customMaterials.map((mat) => (
-              <div key={mat.id || mat.name} className="material-item" style={{ background: 'rgba(255, 107, 0, 0.05)' }}>
-                <div className="material-name-container">
-                  <Icon name="finishes" size={16} color="var(--primary)" />
-                  <div>
-                    <span className="material-name" style={{ fontWeight: 600 }}>{mat.name}</span>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+              <div key={mat.id || mat.name} className="custom-mat-row">
+                <div className="custom-mat-main">
+                  <div className="custom-mat-icon">
+                    <Icon name="finishes" size={16} color="var(--primary)" />
+                  </div>
+                  <div className="custom-mat-info">
+                    <div className="custom-mat-title">{mat.name}</div>
+                    <div className="custom-mat-rate">
                       @{formatMoney(mat.unitPrice)}/{mat.unit}
                     </div>
                   </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <span className="material-quantity" style={{ fontWeight: 700 }}>
+                <div className="custom-mat-cost-col">
+                  <div className="custom-mat-qty">
                     {mat.quantity} {mat.unit}
-                  </span>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 600 }}>
+                  </div>
+                  <div className="custom-mat-total">
                     {formatMoney(mat.lineCost)}
                   </div>
                 </div>
