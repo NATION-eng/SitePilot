@@ -6,6 +6,7 @@ import FormContainer from './components/FormContainer';
 import Results from './components/Results/Results';
 import SEO from './components/SEO';
 import OfflineBanner from './components/PWA/OfflineBanner';
+import BottomNavBar from './components/MobileNav/BottomNavBar';
 import Icon from './components/ui/Icon';
 import { useProject } from './context/ProjectContext';
 
@@ -87,6 +88,9 @@ function App() {
           </section>
         )}
       </main>
+
+      {/* Mobile Bottom Navigation — only renders on mobile via CSS media query */}
+      <BottomNavBar />
     </div>
   );
 }

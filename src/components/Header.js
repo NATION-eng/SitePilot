@@ -3,109 +3,149 @@ import { useProject } from '../context/ProjectContext';
 import MaterialRatesDropdown from './PriceManager/MaterialRatesDropdown';
 import ProjectHistoryDrawer from './Portfolio/ProjectHistoryDrawer';
 import InstallPWAButton from './PWA/InstallPWAButton';
-import Icon from './ui/Icon';
-import PRICING_CONFIG from '../pricing.config.json';
 
 const Header = () => {
-  const { currency, setCurrency, unit, setUnit, savedProjects, resetProject } = useProject();
+  const { savedProjects, resetProject } = useProject();
   const [isRatesDropdownOpen, setIsRatesDropdownOpen] = useState(false);
   const [isPortfolioOpen, setIsPortfolioOpen] = useState(false);
   const ratesBtnRef = useRef(null);
 
   return (
-    <header className="header fade-in">
-      <div className="container">
-        <div className="header-content">
-          <div className="logo btn-hover" onClick={resetProject} role="button" tabIndex={0} style={{ cursor: 'pointer' }}>
-            <div className="logo-icon">S</div>
-            <div className="logo-text">
-              Site<span className="logo-accent">Pilot</span>
-            </div>
-          </div>
-
-          <div className="header-controls">
-            {/* Install PWA Button */}
-            <InstallPWAButton />
-
-            {/* Project Portfolio Drawer Button */}
-            <button
-              type="button"
-              className="rates-btn btn-hover"
-              onClick={() => setIsPortfolioOpen(true)}
-              title="View and manage saved construction project estimates"
+    <>
+      <header className="header fade-in">
+        <div className="container">
+          <div className="header-content">
+            {/* Logo — always visible */}
+            <div
+              className="logo btn-hover"
+              onClick={resetProject}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && resetProject()}
+              style={{ cursor: 'pointer' }}
+              aria-label="Go to SitePilot home"
             >
-              <Icon name="box" size={14} color="var(--primary)" style={{ marginRight: '0.35rem' }} />
-              <span>Projects ({savedProjects.length})</span>
-            </button>
+              <div className="logo-icon">
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                  <path d="M11 2L2 7v13h18V7L11 2z" stroke="white" strokeWidth="1.8" strokeLinejoin="round"/>
+                  <rect x="7" y="13" width="3" height="7" fill="white" rx="0.5"/>
+                  <rect x="12" y="10" width="3" height="4" fill="rgba(255,255,255,0.6)" rx="0.5"/>
+                  <circle cx="17" cy="5" r="2.5" fill="#00D9A3"/>
+                </svg>
+              </div>
+              <div className="logo-text">
+                Site<span className="logo-accent">Pilot</span>
+              </div>
+            </div>
 
-            {/* Material Rates Dropdown Trigger */}
-            <div className="rates-dropdown-wrapper" style={{ position: 'relative' }}>
+            {/* Desktop-only controls (hidden on mobile — bottom nav handles them) */}
+            <div className="header-controls desktop-only-controls">
+              <InstallPWAButton />
+
+              {/* Projects */}
               <button
-                ref={ratesBtnRef}
                 type="button"
-                className={`rates-btn btn-hover ${isRatesDropdownOpen ? 'rates-btn-active' : ''}`}
-                onClick={() => setIsRatesDropdownOpen(prev => !prev)}
-                aria-expanded={isRatesDropdownOpen}
-                aria-haspopup="dialog"
-                title="Inspect and edit live material unit prices & market inflation rates"
+                className="rates-btn btn-hover"
+                onClick={() => setIsPortfolioOpen(true)}
+                title="Saved project estimates"
               >
-                <Icon name="drafting" size={14} color="var(--primary)" style={{ marginRight: '0.35rem' }} />
-                <span>Material Rates</span>
-                <span style={{ fontSize: '0.7rem', marginLeft: '0.35rem', opacity: 0.7 }}>
-                  {isRatesDropdownOpen ? '▲' : '▼'}
-                </span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.35rem' }}>
+                  <rect x="2" y="7" width="20" height="14" rx="2"/>
+                  <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                </svg>
+                <span>Projects ({savedProjects.length})</span>
               </button>
 
-              <MaterialRatesDropdown
-                isOpen={isRatesDropdownOpen}
-                anchorRef={ratesBtnRef}
-                onClose={() => setIsRatesDropdownOpen(false)}
-              />
+              {/* Material Rates */}
+              <div className="rates-dropdown-wrapper" style={{ position: 'relative' }}>
+                <button
+                  ref={ratesBtnRef}
+                  type="button"
+                  className={`rates-btn btn-hover ${isRatesDropdownOpen ? 'rates-btn-active' : ''}`}
+                  onClick={() => setIsRatesDropdownOpen(prev => !prev)}
+                  aria-expanded={isRatesDropdownOpen}
+                  aria-haspopup="dialog"
+                  title="Material unit prices"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.35rem' }}>
+                    <line x1="12" y1="1" x2="12" y2="23"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                  <span>Rates</span>
+                  <span style={{ fontSize: '0.7rem', marginLeft: '0.35rem', opacity: 0.7 }}>
+                    {isRatesDropdownOpen ? '▲' : '▼'}
+                  </span>
+                </button>
+                <MaterialRatesDropdown
+                  isOpen={isRatesDropdownOpen}
+                  anchorRef={ratesBtnRef}
+                  onClose={() => setIsRatesDropdownOpen(false)}
+                />
+              </div>
+
+              <DesktopCurrencyUnit />
+
+              <div className="header-badge">SMART ESTIMATOR</div>
             </div>
 
-            {/* Currency Selector */}
-            <div className="control-group">
-              <label htmlFor="currency-select" className="control-label">Currency:</label>
-              <select
-                id="currency-select"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="header-select"
-                aria-label="Select display currency"
-              >
-                {Object.entries(PRICING_CONFIG.currencies).map(([code, info]) => (
-                  <option key={code} value={code}>
-                    {info.symbol} {code}
-                  </option>
-                ))}
-              </select>
+            {/* Mobile-only: just install button on the right */}
+            <div className="mobile-only-controls">
+              <InstallPWAButton />
             </div>
-
-            {/* Unit Switcher */}
-            <div className="control-group">
-              <label htmlFor="unit-select" className="control-label">Unit:</label>
-              <select
-                id="unit-select"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                className="header-select"
-                aria-label="Select area measurement unit"
-              >
-                <option value="sqm">m² (Metric)</option>
-                <option value="sqft">sq ft (Imperial)</option>
-              </select>
-            </div>
-
-            <div className="header-badge">SMART ESTIMATOR</div>
           </div>
         </div>
-      </div>
+      </header>
 
+      {/* Portfolio drawer (triggered by bottom nav on mobile OR header button on desktop) */}
       <ProjectHistoryDrawer
         isOpen={isPortfolioOpen}
         onClose={() => setIsPortfolioOpen(false)}
       />
-    </header>
+
+      {/* Desktop Material Rates Dropdown (only fires on desktop, handled by bottom nav on mobile) */}
+    </>
+  );
+};
+
+/* Currency + Unit selectors — desktop only */
+const DesktopCurrencyUnit = () => {
+  const { currency, setCurrency, unit, setUnit } = useProject();
+  // Import inline to avoid circular dep
+  const [cfg, setCfg] = React.useState(null);
+  React.useEffect(() => {
+    import('../pricing.config.json').then(m => setCfg(m.default || m));
+  }, []);
+
+  return (
+    <>
+      <div className="control-group">
+        <label htmlFor="currency-select-desktop" className="control-label">Currency:</label>
+        <select
+          id="currency-select-desktop"
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value)}
+          className="header-select"
+          aria-label="Select display currency"
+        >
+          {cfg && Object.entries(cfg.currencies).map(([code, info]) => (
+            <option key={code} value={code}>{info.symbol} {code}</option>
+          ))}
+        </select>
+      </div>
+      <div className="control-group">
+        <label htmlFor="unit-select-desktop" className="control-label">Unit:</label>
+        <select
+          id="unit-select-desktop"
+          value={unit}
+          onChange={(e) => setUnit(e.target.value)}
+          className="header-select"
+          aria-label="Select area measurement unit"
+        >
+          <option value="sqm">m² Metric</option>
+          <option value="sqft">sq ft Imperial</option>
+        </select>
+      </div>
+    </>
   );
 };
 

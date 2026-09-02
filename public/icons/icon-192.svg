@@ -1,19 +1,49 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
   <defs>
-    <linearGradient id="pwaGrad192" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FF6B00" />
-      <stop offset="100%" stop-color="#CC5500" />
+    <linearGradient id="bg192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B00"/>
+      <stop offset="100%" stop-color="#CC4400"/>
     </linearGradient>
-    <filter id="pwaShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.4" />
+    <linearGradient id="shimmer192" x1="0%" y1="0%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+    <filter id="shadow192">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.5"/>
     </filter>
   </defs>
-  <rect width="192" height="192" rx="42" fill="#0A0E14" />
-  <rect x="14" y="14" width="164" height="164" rx="34" fill="url(#pwaGrad192)" filter="url(#pwaShadow)" />
-  <!-- Blueprint Construction Compass / Pilot Symbol -->
-  <g fill="#FFFFFF">
-    <path d="M64 136V56h24c16 0 28 10 28 24 0 10-6 19-16 23l19 33H95l-15-28H76v28H64zm12-40h12c9 0 15-4.5 15-12s-6-12-15-12H76v24z" />
-    <circle cx="132" cy="62" r="9" fill="#00D9A3" />
-    <path d="M120 126l12-22 12 22h-24z" fill="#FFD700" />
-  </g>
+  <!-- Background -->
+  <rect width="192" height="192" rx="42" fill="#0A0E14"/>
+  <!-- Orange card with shadow -->
+  <rect x="18" y="18" width="156" height="156" rx="36" fill="url(#bg192)" filter="url(#shadow192)"/>
+  <!-- Shimmer overlay -->
+  <rect x="18" y="18" width="156" height="78" rx="36" fill="url(#shimmer192)"/>
+
+  <!-- Blueprint grid lines -->
+  <line x1="60" y1="18" x2="60" y2="174" stroke="rgba(255,255,255,0.05)" strokeWidth="1.5"/>
+  <line x1="102" y1="18" x2="102" y2="174" stroke="rgba(255,255,255,0.05)" strokeWidth="1.5"/>
+  <line x1="144" y1="18" x2="144" y2="174" stroke="rgba(255,255,255,0.05)" strokeWidth="1.5"/>
+  <line x1="18" y1="66" x2="174" y2="66" stroke="rgba(255,255,255,0.05)" strokeWidth="1.5"/>
+  <line x1="18" y1="108" x2="174" y2="108" stroke="rgba(255,255,255,0.05)" strokeWidth="1.5"/>
+  <line x1="18" y1="150" x2="174" y2="150" stroke="rgba(255,255,255,0.05)" strokeWidth="1.5"/>
+
+  <!-- S letterform -->
+  <path d="M36 67c0-5 4-9 9-9h20c5 0 9 4 9 9s-4 9-9 9H46c-5 0-9 4-9 9s4 9 9 9h20"
+    stroke="white" strokeWidth="8.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+
+  <!-- P letterform -->
+  <path d="M84 58v46" stroke="white" strokeWidth="8.5" strokeLinecap="round" fill="none"/>
+  <path d="M84 58h16c7 0 13 5.8 13 13s-6 13-13 13H84"
+    stroke="white" strokeWidth="8.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+
+  <!-- Teal accent circle — intelligence dot -->
+  <circle cx="150" cy="46" r="16" fill="#0A0E14"/>
+  <circle cx="150" cy="46" r="11" fill="#00D9A3"/>
+  <circle cx="150" cy="46" r="5" fill="white" opacity="0.9"/>
+
+  <!-- City / building skyline silhouette (bottom) -->
+  <rect x="100" y="130" width="14" height="32" rx="2" fill="rgba(255,255,255,0.22)"/>
+  <rect x="116" y="140" width="12" height="22" rx="2" fill="rgba(255,255,255,0.15)"/>
+  <rect x="130" y="122" width="14" height="40" rx="2" fill="rgba(255,255,255,0.28)"/>
+  <rect x="146" y="136" width="10" height="26" rx="2" fill="rgba(255,255,255,0.18)"/>
 </svg>

@@ -1,19 +1,63 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="pwaGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FF6B00" />
-      <stop offset="50%" stop-color="#FF8533" />
-      <stop offset="100%" stop-color="#CC5500" />
+    <linearGradient id="bg512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF7A1A"/>
+      <stop offset="50%" stop-color="#FF6B00"/>
+      <stop offset="100%" stop-color="#C43E00"/>
     </linearGradient>
-    <filter id="pwaShadow512" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000" flood-opacity="0.5" />
+    <linearGradient id="shimmer512" x1="0%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+    <filter id="shadow512" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="20" stdDeviation="30" flood-color="#000" flood-opacity="0.6"/>
     </filter>
   </defs>
-  <rect width="512" height="512" rx="112" fill="#0A0E14" />
-  <rect x="36" y="36" width="440" height="440" rx="92" fill="url(#pwaGrad512)" filter="url(#pwaShadow512)" />
-  <g fill="#FFFFFF">
-    <path d="M170 360V152h64c42 0 74 26 74 64 0 26-16 50-42 60l50 84H252l-40-74h-6v74H170zm32-106h32c24 0 40-12 40-32s-16-32-40-32h-32v64z" />
-    <circle cx="350" cy="168" r="24" fill="#00D9A3" />
-    <path d="M320 336l32-58 32 58h-64z" fill="#FFD700" />
-  </g>
+
+  <!-- Outer background -->
+  <rect width="512" height="512" rx="112" fill="#0A0E14"/>
+
+  <!-- Main orange card -->
+  <rect x="48" y="48" width="416" height="416" rx="96" fill="url(#bg512)" filter="url(#shadow512)"/>
+
+  <!-- Shimmer overlay on top half -->
+  <rect x="48" y="48" width="416" height="208" rx="96" fill="url(#shimmer512)"/>
+
+  <!-- Blueprint grid lines -->
+  <line x1="160" y1="48" x2="160" y2="464" stroke="rgba(255,255,255,0.045)" strokeWidth="2"/>
+  <line x1="256" y1="48" x2="256" y2="464" stroke="rgba(255,255,255,0.045)" strokeWidth="2"/>
+  <line x1="352" y1="48" x2="352" y2="464" stroke="rgba(255,255,255,0.045)" strokeWidth="2"/>
+  <line x1="48" y1="160" x2="464" y2="160" stroke="rgba(255,255,255,0.045)" strokeWidth="2"/>
+  <line x1="48" y1="256" x2="464" y2="256" stroke="rgba(255,255,255,0.045)" strokeWidth="2"/>
+  <line x1="48" y1="352" x2="464" y2="352" stroke="rgba(255,255,255,0.045)" strokeWidth="2"/>
+
+  <!-- S letterform — bold, clean -->
+  <path d="M96 174c0-15 12-27 27-27h58c15 0 27 12 27 27s-12 27-27 27h-58c-15 0-27 12-27 27s12 27 27 27h58"
+    stroke="white" strokeWidth="22" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+
+  <!-- P letterform -->
+  <path d="M232 147v118" stroke="white" strokeWidth="22" strokeLinecap="round" fill="none"/>
+  <path d="M232 147h44c20 0 36 16 36 36s-16 36-36 36h-44"
+    stroke="white" strokeWidth="22" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+
+  <!-- Teal intelligence dot with glow rings -->
+  <circle cx="400" cy="112" r="44" fill="#0A0E14" opacity="0.6"/>
+  <circle cx="400" cy="112" r="30" fill="#00D9A3"/>
+  <circle cx="400" cy="112" r="14" fill="white" opacity="0.92"/>
+  <!-- Outer glow ring -->
+  <circle cx="400" cy="112" r="42" fill="none" stroke="#00D9A3" strokeWidth="2" opacity="0.3"/>
+
+  <!-- City skyline silhouette (bottom third) -->
+  <rect x="262" y="346" width="36" height="86" rx="4" fill="rgba(255,255,255,0.2)"/>
+  <rect x="300" y="368" width="30" height="64" rx="4" fill="rgba(255,255,255,0.14)"/>
+  <rect x="332" y="330" width="40" height="102" rx="4" fill="rgba(255,255,255,0.26)"/>
+  <rect x="374" y="358" width="28" height="74" rx="4" fill="rgba(255,255,255,0.16)"/>
+  <rect x="404" y="344" width="26" height="88" rx="4" fill="rgba(255,255,255,0.22)"/>
+  <!-- Ground line -->
+  <rect x="240" y="428" width="224" height="4" rx="2" fill="rgba(255,255,255,0.15)"/>
+
+  <!-- Small crosshair / level indicator below S and P -->
+  <circle cx="156" cy="342" r="16" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2"/>
+  <line x1="148" y1="342" x2="164" y2="342" stroke="rgba(255,255,255,0.25)" strokeWidth="2"/>
+  <line x1="156" y1="334" x2="156" y2="350" stroke="rgba(255,255,255,0.25)" strokeWidth="2"/>
 </svg>
