@@ -3,7 +3,7 @@
  * Enables 100% offline estimation capabilities on active construction sites.
  */
 
-const CACHE_NAME = 'sitepilot-pwa-v1';
+const CACHE_NAME = 'sitepilot-pwa-v3-3';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',

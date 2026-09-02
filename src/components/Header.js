@@ -3,6 +3,7 @@ import { useProject } from '../context/ProjectContext';
 import MaterialRatesDropdown from './PriceManager/MaterialRatesDropdown';
 import ProjectHistoryDrawer from './Portfolio/ProjectHistoryDrawer';
 import InstallPWAButton from './PWA/InstallPWAButton';
+import SiteLogo from './ui/SiteLogo';
 
 const Header = () => {
   const { savedProjects, resetProject } = useProject();
@@ -25,17 +26,7 @@ const Header = () => {
               style={{ cursor: 'pointer' }}
               aria-label="Go to SitePilot home"
             >
-              <div className="logo-icon">
-                <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                  <path d="M11 2L2 7v13h18V7L11 2z" stroke="white" strokeWidth="1.8" strokeLinejoin="round"/>
-                  <rect x="7" y="13" width="3" height="7" fill="white" rx="0.5"/>
-                  <rect x="12" y="10" width="3" height="4" fill="rgba(255,255,255,0.6)" rx="0.5"/>
-                  <circle cx="17" cy="5" r="2.5" fill="#00D9A3"/>
-                </svg>
-              </div>
-              <div className="logo-text">
-                Site<span className="logo-accent">Pilot</span>
-              </div>
+              <SiteLogo size={38} showTagline={true} />
             </div>
 
             {/* Desktop-only controls (hidden on mobile — bottom nav handles them) */}
